@@ -180,7 +180,7 @@ CREATE OR REPLACE VIEW issue_details AS
 SELECT 
   si.*,
   COUNT(c.id) as comment_count,
-  MAX(CASE WHEN c.is_verified_fix = true THEN c.id END) as verified_fix_comment_id
+  (SELECT c2.id FROM comments c2 WHERE c2.issue_id = si.id AND c2.is_verified_fix = true LIMIT 1) as verified_fix_comment_id
 FROM stata_issues si
 LEFT JOIN comments c ON c.issue_id = si.id
 GROUP BY si.id;
