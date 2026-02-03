@@ -108,6 +108,7 @@ const MyPolipions = () => {
             <Card
               key={post.id}
               id={post.id}
+              title={post.title}
               command={post.command}
               error_category={post.error_category}
               description={post.description}
@@ -115,6 +116,8 @@ const MyPolipions = () => {
               image_url={post.image_url}
               username={post.username}
               is_resolved={post.is_resolved}
+              upvotes={post.upvotes}
+              downvotes={post.downvotes}
             />
           ))}
         </div>

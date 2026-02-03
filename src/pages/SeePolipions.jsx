@@ -44,29 +44,79 @@ const SeePolipions = () => {
     try {
       setLoading(true);
 
-      let query = supabase
-        .from("stata_issues")
-        .select("*");
+      // For 'hot' sorting, we need to get comment counts
+      if (sortBy === 'hot') {
+        // Get issues with comment counts
+        const { data: issuesData, error: issuesError } = await supabase
+          .from("stata_issues")
+          .select("*");
 
-      // Apply search filter if search term exists (search by command and description)
-      if (debouncedSearchTerm.trim()) {
-        query = query.or(`command.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%`);
-      }
+        if (issuesError) {
+          console.error("Error fetching STATA issues:", issuesError);
+          setPosts([]);
+          setLoading(false);
+          return;
+        }
 
-      // Apply sorting
-      if (sortBy === 'created_at') {
-        query = query.order('created_at', { ascending: false });
-      } else if (sortBy === 'is_resolved') {
-        query = query.order('is_resolved', { ascending: true }).order('created_at', { ascending: false });
-      }
+        // Get comment counts for each issue
+        const issuesWithCounts = await Promise.all(
+          (issuesData || []).map(async (issue) => {
+            const { count } = await supabase
+              .from("comments")
+              .select("*", { count: 'exact', head: true })
+              .eq("issue_id", issue.id);
 
-      const { data, error } = await query;
+            return {
+              ...issue,
+              comment_count: count || 0,
+              hot_score: (issue.upvotes || 0) - (issue.downvotes || 0) + (count || 0) * 2
+            };
+          })
+        );
 
-      if (error) {
-        console.error("Error fetching STATA issues:", error);
-        setPosts([]);
+        // Apply search filter
+        let filtered = issuesWithCounts;
+        if (debouncedSearchTerm.trim()) {
+          filtered = issuesWithCounts.filter(issue => 
+            issue.command?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+            issue.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+            issue.title?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+          );
+        }
+
+        // Sort by hot score
+        filtered.sort((a, b) => b.hot_score - a.hot_score);
+        setPosts(filtered);
       } else {
-        setPosts(data || []);
+        // Regular sorting
+        let query = supabase
+          .from("stata_issues")
+          .select("*");
+
+        // Apply search filter if search term exists
+        if (debouncedSearchTerm.trim()) {
+          query = query.or(`command.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%,title.ilike.%${debouncedSearchTerm}%`);
+        }
+
+        // Apply sorting
+        if (sortBy === 'created_at') {
+          query = query.order('created_at', { ascending: false });
+        } else if (sortBy === 'is_resolved') {
+          query = query.order('is_resolved', { ascending: true }).order('created_at', { ascending: false });
+        } else if (sortBy === 'upvotes_desc') {
+          query = query.order('upvotes', { ascending: false });
+        } else if (sortBy === 'upvotes_asc') {
+          query = query.order('upvotes', { ascending: true });
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("Error fetching STATA issues:", error);
+          setPosts([]);
+        } else {
+          setPosts(data || []);
+        }
       }
     } catch (error) {
       alert("Unexpected error loading STATA issues: " + error.message);
@@ -107,8 +157,11 @@ const SeePolipions = () => {
             onChange={(e) => setSortBy(e.target.value)}
             className="control-select"
           >
-            <option value="created_at">Newest First</option>
-            <option value="is_resolved">Unsolved First</option>
+            <option value="hot">🔥 Hot (Most Active)</option>
+            <option value="created_at">📅 Newest First</option>
+            <option value="upvotes_desc">⬆ Most Upvotes</option>
+            <option value="upvotes_asc">⬇ Least Upvotes</option>
+            <option value="is_resolved">❓ Unsolved First</option>
           </select>
         </div>
 
@@ -126,6 +179,7 @@ const SeePolipions = () => {
             <Card
               key={post.id}
               id={post.id}
+              title={post.title}
               command={post.command}
               error_category={post.error_category}
               description={post.description}
@@ -133,6 +187,8 @@ const SeePolipions = () => {
               image_url={post.image_url}
               username={post.username}
               is_resolved={post.is_resolved}
+              upvotes={post.upvotes}
+              downvotes={post.downvotes}
             />
           ))}
         </div>

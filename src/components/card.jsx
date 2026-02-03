@@ -55,23 +55,38 @@ const Card = (props) => {
 
   return (
     <div className="forum-card" style={{
-      border: props.is_resolved ? '2px solid #10b981' : '1px solid var(--card-border)'
+      border: props.is_resolved ? '2px solid #10b981' : '1px solid var(--card-border)',
+      padding: '16px'
     }}>
-      <div className="forum-card-header">
-        <span className="upload-date">{formatDate(props.created_at)}</span>
-        <span className="post-author">by @{props.username}</span>
-        {props.is_resolved && (
-          <span style={{
-            backgroundColor: '#10b981',
-            color: 'white',
-            padding: '4px 12px',
-            borderRadius: '4px',
-            fontSize: '12px',
-            fontWeight: 'bold'
-          }}>
-            ✓ Resolved
-          </span>
-        )}
+      {/* Header with metadata */}
+      <div className="forum-card-header" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '12px',
+        fontSize: '0.875rem',
+        color: 'var(--text-secondary)'
+      }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span>@{props.username}</span>
+          <span>•</span>
+          <span>{formatDate(props.created_at)}</span>
+          {props.is_resolved && (
+            <>
+              <span>•</span>
+              <span style={{
+                backgroundColor: '#10b981',
+                color: 'white',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: 'bold'
+              }}>
+                ✓ Resolved
+              </span>
+            </>
+          )}
+        </div>
         {user && user.username === props.username && !props.is_resolved && (
           <div className="card-actions">
             <Link to={`/edit/${props.id}`}>
@@ -82,44 +97,88 @@ const Card = (props) => {
         )}
       </div>
 
-      <Link to={`/polipion/${props.id}`} className="forum-card-link">
+      <Link to={`/polipion/${props.id}`} className="forum-card-link" style={{ textDecoration: 'none' }}>
         <div className="forum-card-content">
-          <div className="forum-card-footer" style={{ marginBottom: '12px' }}>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{
-                fontFamily: 'monospace',
-                backgroundColor: '#f3f4f6',
-                padding: '4px 10px',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                color: '#1e293b'
-              }}>
-                💻 {props.command}
-              </span>
-              <span style={{
-                backgroundColor: '#4f46e5',
-                color: 'white',
-                padding: '4px 12px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                fontWeight: '500'
-              }}>
-                {props.error_category}
-              </span>
-            </div>
-          </div>
+          {/* Reddit-style title */}
+          <h3 style={{
+            fontSize: '1.25rem',
+            fontWeight: '600',
+            marginBottom: '12px',
+            color: 'var(--text-color)',
+            lineHeight: '1.4'
+          }}>
+            {props.title || 'Untitled Issue'}
+          </h3>
 
-          <div className="description-preview" style={{
-            fontSize: '14px',
+          {/* Description preview */}
+          <p style={{
+            fontSize: '0.95rem',
             color: 'var(--text-secondary)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             display: '-webkit-box',
             WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical'
+            WebkitBoxOrient: 'vertical',
+            marginBottom: '12px',
+            lineHeight: '1.5'
           }}>
             {props.description}
+          </p>
+
+          {/* Tags and voting */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '12px', 
+            alignItems: 'center', 
+            flexWrap: 'wrap',
+            marginTop: '12px'
+          }}>
+            {/* Voting */}
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <span style={{
+                fontSize: '0.875rem',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                ⬆ {props.upvotes || 0}
+              </span>
+              <span style={{
+                fontSize: '0.875rem',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                ⬇ {props.downvotes || 0}
+              </span>
+            </div>
+
+            {/* Command badge */}
+            <span style={{
+              fontFamily: 'monospace',
+              backgroundColor: 'var(--bg-secondary)',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              color: 'var(--text-color)'
+            }}>
+              💻 {props.command}
+            </span>
+
+            {/* Error category badge */}
+            <span style={{
+              backgroundColor: '#4f46e5',
+              color: 'white',
+              padding: '3px 10px',
+              borderRadius: '12px',
+              fontSize: '0.75rem',
+              fontWeight: '500'
+            }}>
+              {props.error_category}
+            </span>
           </div>
         </div>
       </Link>

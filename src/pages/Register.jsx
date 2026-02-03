@@ -63,7 +63,7 @@ const Register = () => {
     const result = await register(formData.username, formData.password);
     
     if (result.success) {
-      navigate('/polipions');
+      navigate('/statafix');
     } else {
       setError(result.error);
     }
@@ -74,8 +74,8 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-form-wrapper">
-        <h1>Join Polipine</h1>
-        <p className="auth-subtitle">Create an account to share your political opinions</p>
+        <h1>Join StataFix</h1>
+        <p className="auth-subtitle">Create an account to share your Stata issues</p>
         
         {error && <div className="error-message">{error}</div>}
         

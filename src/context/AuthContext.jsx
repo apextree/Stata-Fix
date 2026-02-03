@@ -104,12 +104,33 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('statafix_user');
   };
 
+  const refreshUserPoints = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('cumulative_points')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && data) {
+        const updatedUser = { ...user, cumulative_points: data.cumulative_points };
+        setUser(updatedUser);
+        localStorage.setItem('statafix_user', JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error('Error refreshing user points:', error);
+    }
+  };
+
   const value = {
     user,
     loading,
     register,
     login,
     logout,
+    refreshUserPoints,
     isAuthenticated: !!user
   };
 

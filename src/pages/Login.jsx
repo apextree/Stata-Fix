@@ -46,8 +46,8 @@ const Login = () => {
   return (
     <div className="auth-container">
       <div className="auth-form-wrapper">
-        <h1>Login to Polipine</h1>
-        <p className="auth-subtitle">Share and discuss political opinions</p>
+        <h1>Login to StataFix</h1>
+        <p className="auth-subtitle">Share and discuss Stata issues</p>
         
         {error && <div className="error-message">{error}</div>}
         

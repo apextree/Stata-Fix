@@ -6,7 +6,7 @@ import { supabase } from "../client";
 
 const CreatePolipion = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUserPoints } = useAuth();
   const [post, setPost] = useState({
     post_title: "",
     command: "",
@@ -45,11 +45,14 @@ const CreatePolipion = () => {
         .insert({
           user_id: user.id,
           username: user.username,
+          title: post.post_title,
           command: post.command,
           error_category: post.error_category,
           description: post.description,
           image_url: post.image_url || null,
-          is_resolved: false
+          is_resolved: false,
+          upvotes: 0,
+          downvotes: 0
         })
         .select()
         .single();
@@ -87,6 +90,9 @@ const CreatePolipion = () => {
       }
 
       console.log("STATA issue created successfully:", issueData);
+
+      // Refresh user points in sidebar
+      await refreshUserPoints();
 
       setPost({
         post_title: "",

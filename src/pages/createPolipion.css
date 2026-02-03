@@ -7,18 +7,18 @@
 }
 
 .create-form-wrapper {
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   padding: 40px;
   border-radius: 8px;
   max-width: 500px;
   width: 100%;
-  color: #333;
+  color: var(--text-color);
 }
 
 .create-form-wrapper h1 {
   text-align: center;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 30px;
   font-size: 1.8em;
   font-weight: 600;
@@ -30,7 +30,7 @@
 }
 
 .polipion-preview p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   margin: 0;
 }
@@ -48,27 +48,33 @@
 
 .form-group label {
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8px;
   font-size: 14px;
 }
 
-.form-group input {
+.form-group input,
+.form-group textarea,
+.form-group select {
   padding: 12px 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   font-size: 14px;
   transition: border-color 0.2s ease;
-  color: #333;
+  color: var(--input-text);
+  background-color: var(--input-bg);
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
-  border-color: #999;
+  border-color: var(--input-focus-border);
 }
 
-.form-group input::placeholder {
-  color: #999;
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-muted);
 }
 
 .create-btn {

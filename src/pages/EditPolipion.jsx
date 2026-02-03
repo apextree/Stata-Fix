@@ -10,6 +10,7 @@ const EditPolipion = () => {
   const { user } = useAuth();
   const [post, setPost] = useState({
     id: null,
+    title: "",
     command: "",
     error_category: "",
     description: "",
@@ -45,7 +46,7 @@ const EditPolipion = () => {
   const updatePost = async (event) => {
     event.preventDefault();
 
-    if (!post.command || !post.error_category || !post.description) {
+    if (!post.title || !post.command || !post.error_category || !post.description) {
       alert("Please fill in all required fields!");
       return;
     }
@@ -54,6 +55,7 @@ const EditPolipion = () => {
       const { error } = await supabase
         .from("stata_issues")
         .update({
+          title: post.title,
           command: post.command,
           error_category: post.error_category,
           description: post.description,
@@ -124,6 +126,19 @@ const EditPolipion = () => {
         <h1>Edit STATA Issue</h1>
 
         <form className="edit-form">
+          <div className="form-group">
+            <label htmlFor="title">Issue Title *</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={post.title}
+              onChange={handleChange}
+              placeholder="Brief title describing your issue"
+              required
+            />
+          </div>
+
           <div className="form-group">
             <label htmlFor="command">STATA Command *</label>
             <input
