@@ -9,6 +9,7 @@ const PolipionDetails = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [polipion, setPolipion] = useState(null);
+  const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -16,23 +17,20 @@ const PolipionDetails = () => {
 
   useEffect(() => {
     fetchPolipion();
-    if (user) {
-      fetchUserVote();
-    }
-  }, [id, user]);
+    fetchComments();
+  }, [id]);
 
   const fetchPolipion = async () => {
     try {
       const { data, error } = await supabase
-        .from("polipions")
+        .from("stata_issues")
         .select("*")
         .eq("id", id)
         .single();
 
       if (error) {
-        console.error("Error fetching Polipion:", error);
+        console.error("Error fetching STATA issue:", error);
         if (error.code === 'PGRST116') {
-          // No rows returned - polipion doesn't exist
           setNotFound(true);
         }
       } else {
@@ -46,69 +44,83 @@ const PolipionDetails = () => {
     }
   };
 
-  const fetchUserVote = async () => {
-    // For unlimited voting, we don't need to track user vote state
-    // This function is kept for compatibility but does nothing
-    return;
-  };
-
-  const handleUpvote = async () => {
-    if (!user) {
-      alert("Please log in to vote");
-      return;
-    }
-
+  const fetchComments = async () => {
     try {
-      // Add a new like vote (unlimited voting)
-      await supabase
-        .from("user_votes")
-        .insert({
-          user_id: user.id,
-          polipion_id: id,
-          vote_type: 'like'
-        });
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+        .eq("issue_id", id)
+        .order("created_at", { ascending: true });
 
-      // Increment the like count
-      const newLikes = (polipion.post_likes || 0) + 1;
-      await supabase
-        .from("polipions")
-        .update({ post_likes: newLikes })
-        .eq("id", id);
-
-      setPolipion(prev => ({ ...prev, post_likes: newLikes }));
+      if (error) {
+        console.error("Error fetching comments:", error);
+      } else {
+        setComments(data || []);
+      }
     } catch (error) {
-      console.error("Error updating vote:", error);
-      alert("Error updating vote: " + error.message);
+      console.error("Unexpected error:", error);
     }
   };
 
-  const handleDownvote = async () => {
-    if (!user) {
-      alert("Please log in to vote");
+  const handleMarkAsFix = async (commentId, commentAuthorId) => {
+    if (!user || user.id !== polipion.user_id) {
+      alert("Only the issue author can mark a fix");
       return;
     }
 
-    try {
-      // Add a new dislike vote (unlimited voting)
-      await supabase
-        .from("user_votes")
-        .insert({
-          user_id: user.id,
-          polipion_id: id,
-          vote_type: 'dislike'
-        });
+    if (window.confirm("Mark this comment as the verified fix?")) {
+      try {
+        // Update the comment to mark it as verified fix
+        const { error: commentError } = await supabase
+          .from("comments")
+          .update({ is_verified_fix: true })
+          .eq("id", commentId);
 
-      // Increment the dislike count
-      const newDislikes = (polipion.post_dislikes || 0) + 1;
-      await supabase
-        .from("polipions")
-        .update({ post_dislikes: newDislikes })
-        .eq("id", id);
+        if (commentError) throw commentError;
 
-      setPolipion(prev => ({ ...prev, post_dislikes: newDislikes }));
-    } catch (error) {
-      console.error("Error updating vote:", error);
-      alert("Error updating vote: " + error.message);
+        // Update the issue to mark it as resolved
+        const { error: issueError } = await supabase
+          .from("stata_issues")
+          .update({ is_resolved: true })
+          .eq("id", id);
+
+        if (issueError) throw issueError;
+
+        // Add points to the commenter (+5 for accepted fix)
+        const { error: pointError } = await supabase
+          .from("point_ledger")
+          .insert({
+            user_id: commentAuthorId,
+            points_change: 5,
+            reason: 'ACCEPTED_FIX'
+          });
+
+        if (pointError) throw pointError;
+
+        // Update commenter's cumulative points
+        const { data: commenterProfile } = await supabase
+          .from("profiles")
+          .select("cumulative_points")
+          .eq("id", commentAuthorId)
+          .single();
+
+        if (commenterProfile) {
+          await supabase
+            .from("profiles")
+            .update({ 
+              cumulative_points: (commenterProfile.cumulative_points || 0) + 5 
+            })
+            .eq("id", commentAuthorId);
+        }
+
+        // Refresh data
+        fetchPolipion();
+        fetchComments();
+        alert("Comment marked as the verified fix! +5 points awarded.");
+      } catch (error) {
+        console.error("Error marking as fix:", error);
+        alert("Error marking as fix: " + error.message);
+      }
     }
   };
 
@@ -123,36 +135,53 @@ const PolipionDetails = () => {
 
     setSubmittingComment(true);
     try {
-      const currentComments = polipion.all_comments || [];
-      const newCommentObj = {
-        id: Date.now(),
-        text: newComment.trim(),
-        timestamp: new Date().toISOString(),
-        author: user.username
-      };
-
-      const updatedComments = [...currentComments, newCommentObj];
-      const newCommentsCount = updatedComments.length;
-
-      const { error } = await supabase
-        .from("polipions")
-        .update({
-          all_comments: updatedComments,
-          post_comments_number: newCommentsCount
+      // Insert comment into comments table
+      const { data: commentData, error: commentError } = await supabase
+        .from("comments")
+        .insert({
+          issue_id: id,
+          user_id: user.id,
+          username: user.username,
+          comment_text: newComment.trim(),
+          is_verified_fix: false
         })
-        .eq("id", id);
+        .select()
+        .single();
 
-      if (error) {
-        console.error("Error adding comment:", error);
-        alert("Error adding comment: " + error.message);
-      } else {
-        setPolipion(prev => ({
-          ...prev,
-          all_comments: updatedComments,
-          post_comments_number: newCommentsCount
-        }));
-        setNewComment('');
+      if (commentError) {
+        console.error("Error adding comment:", commentError);
+        alert("Error adding comment: " + commentError.message);
+        return;
       }
+
+      // Add points to point_ledger (+3 for suggestion)
+      const { error: pointError } = await supabase
+        .from("point_ledger")
+        .insert({
+          user_id: user.id,
+          points_change: 3,
+          reason: 'SUGGESTION'
+        });
+
+      if (pointError) {
+        console.error("Error adding points:", pointError);
+      }
+
+      // Update user's cumulative points
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ 
+          cumulative_points: (user.cumulative_points || 0) + 3 
+        })
+        .eq("id", user.id);
+
+      if (profileError) {
+        console.error("Error updating profile points:", profileError);
+      }
+
+      // Refresh comments
+      fetchComments();
+      setNewComment('');
     } catch (error) {
       console.error("Unexpected error:", error);
       alert("Unexpected error occurred: " + error.message);
@@ -174,7 +203,7 @@ const PolipionDetails = () => {
   if (loading) {
     return (
       <div className="loading-container">
-        <h2>Loading Polipion details...</h2>
+        <h2>Loading STATA issue details...</h2>
       </div>
     );
   }
@@ -182,11 +211,11 @@ const PolipionDetails = () => {
   if (notFound || (!loading && !polipion)) {
     return (
       <div className="error-container">
-        <h2>Polipion not found</h2>
-        <p>This polipion may have been deleted or doesn't exist.</p>
+        <h2>STATA Issue not found</h2>
+        <p>This issue may have been deleted or doesn't exist.</p>
         <div className="error-actions">
           <Link to="/polipions">
-            <button className="back-btn">Back to All Polipions</button>
+            <button className="back-btn">Back to All Issues</button>
           </Link>
           <Link to="/">
             <button className="home-btn">Go Home</button>
@@ -201,12 +230,23 @@ const PolipionDetails = () => {
       <div className="polipion-details-card">
         <div className="polipion-details-header">
           <Link to="/polipions" className="back-link">
-            ← Back to All Polipions
+            ← Back to All Issues
           </Link>
-          {user && user.username === polipion.username && (
+          {user && user.id === polipion.user_id && !polipion.is_resolved && (
             <Link to={`/edit/${polipion.id}`} className="edit-link">
-              Edit Polipion
+              Edit Issue
             </Link>
+          )}
+          {polipion.is_resolved && (
+            <span className="resolved-badge" style={{
+              backgroundColor: '#10b981',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              fontWeight: 'bold'
+            }}>
+              ✓ Resolved
+            </span>
           )}
         </div>
 
@@ -215,7 +255,7 @@ const PolipionDetails = () => {
             <div className="polipion-details-image">
               <img
                 src={polipion.image_url}
-                alt={polipion.post_title}
+                alt="STATA error screenshot"
                 className="details-polipion-image"
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -225,8 +265,6 @@ const PolipionDetails = () => {
           )}
 
           <div className="polipion-info">
-            <h1 className="polipion-details-title">{polipion.post_title}</h1>
-
             <div className="polipion-meta">
               <p className="creation-date">
                 <span className="meta-label">📅 Posted:</span> {formatDate(polipion.created_at)}
@@ -238,91 +276,106 @@ const PolipionDetails = () => {
 
             <div className="polipion-stats">
               <div className="stat-item">
-                <span className="stat-label">Politician:</span>
-                <span className="stat-value">{polipion.politician_name || 'Unknown Politician'}</span>
+                <span className="stat-label">Command:</span>
+                <span className="stat-value" style={{
+                  fontFamily: 'monospace',
+                  backgroundColor: '#f3f4f6',
+                  padding: '4px 8px',
+                  borderRadius: '4px'
+                }}>{polipion.command}</span>
               </div>
               <div className="stat-item">
-                <span className="stat-label">Party:</span>
-                <span className="stat-value party-badge">{polipion.party}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Country:</span>
-                <span className="stat-value">{polipion.country}</span>
+                <span className="stat-label">Error Category:</span>
+                <span className="stat-value party-badge" style={{
+                  backgroundColor: '#4f46e5',
+                  color: 'white',
+                  padding: '4px 12px',
+                  borderRadius: '12px',
+                  fontSize: '14px'
+                }}>{polipion.error_category}</span>
               </div>
             </div>
 
             <div className="polipion-opinion">
-              <h3>Opinion</h3>
+              <h3>Error Description</h3>
               <div className="opinion-text">
-                <p>{polipion.user_opinion}</p>
+                <p>{polipion.description}</p>
               </div>
-            </div>
-
-            <div className="polipion-actions">
-              <div className="vote-buttons">
-                <button
-                  className="upvote-btn"
-                  onClick={handleUpvote}
-                  title="Upvote this opinion"
-                  disabled={!user}
-                >
-                  👍 {polipion.post_likes || 0}
-                </button>
-                <button
-                  className="downvote-btn"
-                  onClick={handleDownvote}
-                  title="Downvote this opinion"
-                  disabled={!user}
-                >
-                  👎 {polipion.post_dislikes || 0}
-                </button>
-              </div>
-              {!user && (
-                <p className="login-prompt">
-                  <Link to="/login">Login</Link> to vote multiple times and comment
-                </p>
-              )}
-              {user && (
-                <p className="voting-info">
-                  💡 You can vote as many times as you want!
-                </p>
-              )}
             </div>
 
             <div className="comments-section">
-              <h3>Comments ({polipion.post_comments_number || 0})</h3>
+              <h3>Solutions & Suggestions ({comments.length})</h3>
 
-              <form onSubmit={handleAddComment} className="add-comment-form">
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add your comment..."
-                  rows="3"
-                  className="comment-input"
-                  disabled={submittingComment}
-                />
-                <button
-                  type="submit"
-                  className="submit-comment-btn"
-                  disabled={submittingComment || !newComment.trim()}
-                >
-                  {submittingComment ? "Adding..." : "Add Comment"}
-                </button>
-              </form>
+              {user && !polipion.is_resolved && (
+                <form onSubmit={handleAddComment} className="add-comment-form">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Suggest a solution... (+3 points)"
+                    rows="3"
+                    className="comment-input"
+                    disabled={submittingComment}
+                  />
+                  <button
+                    type="submit"
+                    className="submit-comment-btn"
+                    disabled={submittingComment || !newComment.trim()}
+                  >
+                    {submittingComment ? "Adding..." : "Add Suggestion (+3 points)"}
+                  </button>
+                </form>
+              )}
+
+              {!user && (
+                <p className="login-prompt" style={{ marginBottom: '20px' }}>
+                  <Link to="/login">Login</Link> to suggest solutions and earn points
+                </p>
+              )}
 
               <div className="comments-list">
-                {polipion.all_comments && polipion.all_comments.length > 0 ? (
-                  polipion.all_comments.map((comment) => (
-                    <div key={comment.id} className="comment-item">
+                {comments && comments.length > 0 ? (
+                  comments.map((comment) => (
+                    <div key={comment.id} className="comment-item" style={{
+                      border: comment.is_verified_fix ? '2px solid #10b981' : '1px solid #e2e8f0',
+                      backgroundColor: comment.is_verified_fix ? '#f0fdf4' : 'white'
+                    }}>
                       <div className="comment-header">
-                        <span className="comment-author">{comment.author}</span>
-                        <span className="comment-date">{formatDate(comment.timestamp)}</span>
+                        <span className="comment-author">
+                          {comment.username}
+                          {comment.is_verified_fix && (
+                            <span style={{
+                              marginLeft: '8px',
+                              backgroundColor: '#10b981',
+                              color: 'white',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}>✓ Verified Fix</span>
+                          )}
+                        </span>
+                        <span className="comment-date">{formatDate(comment.created_at)}</span>
                       </div>
-                      <div className="comment-text">{comment.text}</div>
+                      <div className="comment-text">{comment.comment_text}</div>
+                      {user && user.id === polipion.user_id && !polipion.is_resolved && !comment.is_verified_fix && (
+                        <button
+                          onClick={() => handleMarkAsFix(comment.id, comment.user_id)}
+                          style={{
+                            marginTop: '10px',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Mark as The Fix (+5 points to author)
+                        </button>
+                      )}
                     </div>
                   ))
                 ) : (
-                  <p className="no-comments">No comments yet. Be the first to comment!</p>
+                  <p className="no-comments">No suggestions yet. Be the first to help!</p>
                 )}
               </div>
             </div>

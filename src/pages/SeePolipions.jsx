@@ -45,31 +45,31 @@ const SeePolipions = () => {
       setLoading(true);
 
       let query = supabase
-        .from("polipions")
+        .from("stata_issues")
         .select("*");
 
-      // Apply search filter if search term exists
+      // Apply search filter if search term exists (search by command and description)
       if (debouncedSearchTerm.trim()) {
-        query = query.ilike('post_title', `%${debouncedSearchTerm}%`);
+        query = query.or(`command.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%`);
       }
 
       // Apply sorting
       if (sortBy === 'created_at') {
         query = query.order('created_at', { ascending: false });
-      } else if (sortBy === 'post_likes') {
-        query = query.order('post_likes', { ascending: false });
+      } else if (sortBy === 'is_resolved') {
+        query = query.order('is_resolved', { ascending: true }).order('created_at', { ascending: false });
       }
 
       const { data, error } = await query;
 
       if (error) {
-        console.error("Error fetching polipions:", error);
+        console.error("Error fetching STATA issues:", error);
         setPosts([]);
       } else {
         setPosts(data || []);
       }
     } catch (error) {
-      alert("Unexpected error loading polipions: " + error.message);
+      alert("Unexpected error loading STATA issues: " + error.message);
       setPosts([]);
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ const SeePolipions = () => {
   if (loading) {
     return (
       <div className="loading-container">
-        <h2>Loading your Polipions...</h2>
+        <h2>Loading STATA issues...</h2>
       </div>
     );
   }
@@ -94,7 +94,7 @@ const SeePolipions = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by title..."
+            placeholder="Search by command or description..."
             className="control-input"
           />
         </div>
@@ -107,8 +107,8 @@ const SeePolipions = () => {
             onChange={(e) => setSortBy(e.target.value)}
             className="control-select"
           >
-            <option value="created_at">Creation Time</option>
-            <option value="post_likes">Upvotes</option>
+            <option value="created_at">Newest First</option>
+            <option value="is_resolved">Unsolved First</option>
           </select>
         </div>
 
@@ -126,26 +126,23 @@ const SeePolipions = () => {
             <Card
               key={post.id}
               id={post.id}
-              post_title={post.post_title}
-              party={post.party}
-              country={post.country}
-              user_opinion={post.user_opinion}
-              post_likes={post.post_likes}
-              post_dislikes={post.post_dislikes}
+              command={post.command}
+              error_category={post.error_category}
+              description={post.description}
               created_at={post.created_at}
               image_url={post.image_url}
-              politician_name={post.politician_name}
               username={post.username}
+              is_resolved={post.is_resolved}
             />
           ))}
         </div>
       ) : (
         <div className="no-polipions">
-          <h2>No Polipions to display 😔</h2>
-          <p>No political opinions have been shared yet. Be the first to share your thoughts!</p>
+          <h2>No STATA issues to display</h2>
+          <p>No errors have been reported yet. Be the first to share an issue!</p>
           <Link to="/new">
             <button className="add-polipion-btn">
-              Share Your First Opinion
+              Report Your First Error
             </button>
           </Link>
         </div>

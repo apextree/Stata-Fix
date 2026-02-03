@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     
-    const savedUser = localStorage.getItem('polipine_user');
+    const savedUser = localStorage.getItem('statafix_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     try {
       
       const { data: existingUser } = await supabase
-        .from('users')
+        .from('profiles')
         .select('username')
         .eq('username', username)
         .single();
@@ -51,19 +51,20 @@ export const AuthProvider = ({ children }) => {
 
       
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .insert({
           username,
-          password_hash: passwordHash
+          password_hash: passwordHash,
+          cumulative_points: 0
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      const userData = { id: data.id, username: data.username };
+      const userData = { id: data.id, username: data.username, cumulative_points: data.cumulative_points };
       setUser(userData);
-      localStorage.setItem('polipine_user', JSON.stringify(userData));
+      localStorage.setItem('statafix_user', JSON.stringify(userData));
       
       return { success: true };
     } catch (error) {
@@ -78,8 +79,8 @@ export const AuthProvider = ({ children }) => {
 
       // Find user with matching username and password
       const { data, error } = await supabase
-        .from('users')
-        .select('id, username')
+        .from('profiles')
+        .select('id, username, cumulative_points')
         .eq('username', username)
         .eq('password_hash', passwordHash)
         .single();
@@ -88,9 +89,9 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Invalid username or password');
       }
 
-      const userData = { id: data.id, username: data.username };
+      const userData = { id: data.id, username: data.username, cumulative_points: data.cumulative_points };
       setUser(userData);
-      localStorage.setItem('polipine_user', JSON.stringify(userData));
+      localStorage.setItem('statafix_user', JSON.stringify(userData));
       
       return { success: true };
     } catch (error) {
@@ -100,7 +101,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('polipine_user');
+    localStorage.removeItem('statafix_user');
   };
 
   const value = {

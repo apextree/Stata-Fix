@@ -6,6 +6,7 @@ import MyPolipions from './pages/MyPolipions'
 import CreatePolipion from './pages/CreatePolipion'
 import EditPolipion from './pages/EditPolipion'
 import PolipionDetails from './pages/PolipionDetails'
+import Leaderboard from './pages/Leaderboard'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -50,6 +51,10 @@ const App = () => {
     {
       path:"/new",
       element: <ProtectedRoute><CreatePolipion /></ProtectedRoute>
+    },
+    {
+      path: "/leaderboard",
+      element: <ProtectedRoute><Leaderboard /></ProtectedRoute>
     },
     {
       path: "*",
