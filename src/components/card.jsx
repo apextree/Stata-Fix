@@ -53,20 +53,29 @@ const Card = (props) => {
     });
   };
 
-  // Determine border color based on status
+  // Determine border and background styling based on status
   const getBorderStyle = () => {
     if (props.is_resolved) {
-      return '2px solid #10b981'; // Green for resolved
+      return '1px solid #10b981'; // Green border for resolved
     } else if (user && user.username === props.username) {
-      return '2px solid #f59e0b'; // Orange for user's own posts
+      return '2px solid #f59e0b'; // Orange border for user's own posts
     } else {
       return '1px solid var(--card-border)'; // Default border
+    }
+  };
+
+  const getBackgroundStyle = () => {
+    if (props.is_resolved) {
+      return 'rgba(16, 185, 129, 0.1)'; // Light green background for resolved (10% opacity)
+    } else {
+      return 'var(--card-bg)'; // Default background
     }
   };
 
   return (
     <div className="forum-card" style={{
       border: getBorderStyle(),
+      backgroundColor: getBackgroundStyle(),
       padding: '16px'
     }}>
       {/* Header with metadata */}
