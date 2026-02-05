@@ -4,27 +4,27 @@
 }
 
 .my-polipions-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
   padding: 30px 20px;
   text-align: center;
 }
 
 .my-polipions-header h1 {
-  color: #333;
+  color: var(--text-color);
   margin: 0 0 10px 0;
   font-size: 2em;
   font-weight: 600;
 }
 
 .user-stats {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 16px;
   margin: 0 0 25px 0;
 }
 
 .user-stats strong {
-  color: #333;
+  color: var(--text-color);
   font-weight: 600;
 }
 
@@ -44,23 +44,23 @@
 
 .sort-controls label {
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 .sort-select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   font-size: 14px;
-  color: #333;
-  background-color: white;
+  color: var(--input-text);
+  background-color: var(--input-bg);
   cursor: pointer;
 }
 
 .sort-select:focus {
   outline: none;
-  border-color: #333;
+  border-color: var(--input-focus-border);
 }
 
 .my-polipions-list {
@@ -93,8 +93,8 @@
   align-items: center;
   min-height: 50vh;
   text-align: center;
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 40px;
   margin: 20px;
@@ -102,14 +102,14 @@
 
 .no-polipions h2 {
   font-size: 1.5em;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12px;
   font-weight: 500;
 }
 
 .no-polipions p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 24px;
   line-height: 1.5;
 }

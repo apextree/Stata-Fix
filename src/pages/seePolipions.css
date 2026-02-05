@@ -27,7 +27,7 @@
 }
 
 .loading-container h2 {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.2em;
   font-weight: 400;
 }
@@ -39,8 +39,8 @@
   align-items: center;
   min-height: 60vh;
   text-align: center;
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 40px;
   margin: 20px 0;
@@ -48,14 +48,14 @@
 
 .no-polipions h2 {
   font-size: 1.5em;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12px;
   font-weight: 500;
 }
 
 .no-polipions p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 24px;
   line-height: 1.5;
 }
@@ -91,7 +91,7 @@
 
 .control-label {
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -99,11 +99,11 @@
 .control-input,
 .control-select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   font-size: 14px;
-  color: #333;
-  background-color: white;
+  color: var(--input-text);
+  background-color: var(--input-bg);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -114,8 +114,8 @@
 .control-input:focus,
 .control-select:focus {
   outline: none;
-  border-color: #333;
-  box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.1);
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 2px var(--shadow-light);
 }
 
 .refresh-btn {
