@@ -11,6 +11,7 @@ const SeePolipions = () => {
   const [sortBy, setSortBy] = useState('created_at');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [showResolved, setShowResolved] = useState(false);
   const location = useLocation();
 
   // Debounce search term
@@ -24,7 +25,7 @@ const SeePolipions = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [location.pathname, sortBy, debouncedSearchTerm]);
+  }, [location.pathname, sortBy, debouncedSearchTerm, showResolved]);
 
 
   useEffect(() => {
@@ -46,10 +47,18 @@ const SeePolipions = () => {
 
       // For 'hot' sorting, we need to get comment counts
       if (sortBy === 'hot') {
-        // Get issues with comment counts
-        const { data: issuesData, error: issuesError } = await supabase
+        // Get issues with comment counts - filter by resolved status
+        let hotQuery = supabase
           .from("stata_issues")
           .select("*");
+        
+        // Server-side filter: only fetch unresolved by default, or all if showResolved is true
+        if (!showResolved) {
+          hotQuery = hotQuery.eq('is_resolved', false);
+        }
+        // If showResolved is true, no filter is applied (fetch all)
+
+        const { data: issuesData, error: issuesError } = await hotQuery;
 
         if (issuesError) {
           console.error("Error fetching STATA issues:", issuesError);
@@ -92,6 +101,12 @@ const SeePolipions = () => {
         let query = supabase
           .from("stata_issues")
           .select("*");
+
+        // Server-side filter: only fetch unresolved by default, or all if showResolved is true
+        if (!showResolved) {
+          query = query.eq('is_resolved', false);
+        }
+        // If showResolved is true, no filter is applied (fetch all)
 
         // Apply search filter if search term exists
         if (debouncedSearchTerm.trim()) {
@@ -171,26 +186,39 @@ const SeePolipions = () => {
         >
           Refresh
         </button>
+
+        <div className="toggle-control" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            id="showResolved"
+            checked={showResolved}
+            onChange={(e) => setShowResolved(e.target.checked)}
+            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+          />
+          <label htmlFor="showResolved" className="control-label" style={{ cursor: 'pointer', margin: 0 }}>
+            Show Resolved Issues
+          </label>
+        </div>
       </div>
       
       {posts && posts.length > 0 ? (
         <div className="forum-posts-list">
           {posts.map((post) => (
-            <Card
-              key={post.id}
-              id={post.id}
-              title={post.title}
-              command={post.command}
-              error_category={post.error_category}
-              description={post.description}
-              created_at={post.created_at}
-              image_url={post.image_url}
-              username={post.username}
-              is_resolved={post.is_resolved}
-              upvotes={post.upvotes}
-              downvotes={post.downvotes}
-            />
-          ))}
+              <Card
+                key={post.id}
+                id={post.id}
+                title={post.title}
+                command={post.command}
+                error_category={post.error_category}
+                description={post.description}
+                created_at={post.created_at}
+                image_url={post.image_url}
+                username={post.username}
+                is_resolved={post.is_resolved}
+                upvotes={post.upvotes}
+                downvotes={post.downvotes}
+              />
+            ))}
         </div>
       ) : (
         <div className="no-polipions">
