@@ -53,9 +53,20 @@ const Card = (props) => {
     });
   };
 
+  // Determine border color based on status
+  const getBorderStyle = () => {
+    if (props.is_resolved) {
+      return '2px solid #10b981'; // Green for resolved
+    } else if (user && user.username === props.username) {
+      return '2px solid #f59e0b'; // Orange for user's own posts
+    } else {
+      return '1px solid var(--card-border)'; // Default border
+    }
+  };
+
   return (
     <div className="forum-card" style={{
-      border: props.is_resolved ? '2px solid #10b981' : '1px solid var(--card-border)',
+      border: getBorderStyle(),
       padding: '16px'
     }}>
       {/* Header with metadata */}
