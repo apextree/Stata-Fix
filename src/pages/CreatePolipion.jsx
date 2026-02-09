@@ -3,19 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./createPolipion.css";
 import { supabase } from "../client";
+import { uploadIssueImage } from "../utils/storage";
 
 const CreatePolipion = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUserPoints } = useAuth();
   const [post, setPost] = useState({
     post_title: "",
-    politician_name: "",
-    party: "",
-    country: "",
-    user_opinion: "",
-    image_url: "",
+    command: "",
+    error_category: "",
+    description: "",
   });
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -27,10 +27,15 @@ const CreatePolipion = () => {
     });
   };
 
+  const handleImageChange = (event) => {
+    const file = event.target.files && event.target.files[0];
+    setImageFile(file || null);
+  };
+
   const createPost = async (event) => {
     event.preventDefault();
 
-    if (!post.post_title || !post.politician_name || !post.party || !post.country || !post.user_opinion) {
+    if (!post.post_title || !post.command || !post.error_category || !post.description) {
       alert("Please fill in all required fields!");
       return;
     }
@@ -38,42 +43,82 @@ const CreatePolipion = () => {
     setLoading(true);
 
     try {
-      console.log("Creating Polipion:", post);
+      console.log("Creating STATA Issue:", post);
 
-      const { data, error } = await supabase
-        .from("polipions")
+      let imageUrl = null;
+      if (imageFile) {
+        const { publicUrl, error: uploadError } = await uploadIssueImage(imageFile, user.id);
+        if (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          alert("Error uploading image: " + uploadError.message);
+          setLoading(false);
+          return;
+        }
+        imageUrl = publicUrl;
+      }
+
+      // Insert the STATA issue
+      const { data: issueData, error: issueError } = await supabase
+        .from("stata_issues")
         .insert({
+          user_id: user.id,
           username: user.username,
-          politician_name: post.politician_name,
-          party: post.party,
-          country: post.country,
-          user_opinion: post.user_opinion,
-          post_title: post.post_title,
-          image_url: post.image_url || null,
-          post_likes: 0,
-          post_dislikes: 0,
-          post_comments_number: 0,
-          all_comments: []
+          title: post.post_title,
+          command: post.command,
+          error_category: post.error_category,
+          description: post.description,
+          image_url: imageUrl,
+          is_resolved: false,
+          upvotes: 0,
+          downvotes: 0
         })
-        .select();
+        .select()
+        .single();
 
-      if (error) {
-        console.error("Error creating Polipion:", error);
-        alert("Error creating Polipion: " + error.message);
+      if (issueError) {
+        console.error("Error creating STATA issue:", issueError);
+        alert("Error creating STATA issue: " + issueError.message);
         setLoading(false);
         return;
       }
 
-      console.log("Polipion created successfully:", data);
+      // Add points to the point_ledger (+5 for posting an error)
+      const { error: pointError } = await supabase
+        .from("point_ledger")
+        .insert({
+          user_id: user.id,
+          points_change: 5,
+          reason: 'POST_ERROR'
+        });
+
+      if (pointError) {
+        console.error("Error adding points:", pointError);
+      }
+
+      // Update user's cumulative points
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ 
+          cumulative_points: (user.cumulative_points || 0) + 5 
+        })
+        .eq("id", user.id);
+
+      if (profileError) {
+        console.error("Error updating profile points:", profileError);
+      }
+
+      console.log("STATA issue created successfully:", issueData);
+
+      // Refresh user points in sidebar
+      await refreshUserPoints();
 
       setPost({
         post_title: "",
-        politician_name: "",
-        party: "",
-        country: "",
-        user_opinion: "",
-        image_url: "",
+        command: "",
+        error_category: "",
+        description: "",
       });
+      setImageFile(null);
 
       setTimeout(() => {
         navigate("/polipions");
@@ -90,72 +135,75 @@ const CreatePolipion = () => {
   return (
     <div className="create-polipion-container">
       <div className="create-form-wrapper">
-        <h1>Share Your Political Opinion</h1>
+        <h1>Report a STATA Error</h1>
         <div className="polipion-preview">
-          <p>Share your thoughts about politicians, parties, and political issues!</p>
+          <p>Encountered a STATA error? Share it here and get help from the community! (+5 points)</p>
         </div>
 
         <form className="create-form" onSubmit={createPost}>
           <div className="form-group">
-            <label htmlFor="post_title">Post Title *</label>
+            <label htmlFor="post_title">Issue Title *</label>
             <input
               type="text"
               value={post.post_title}
               id="post_title"
               name="post_title"
               onChange={handleChange}
-              placeholder="Enter a title for your opinion"
+              placeholder="Brief title describing your issue"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="politician_name">Politician Name *</label>
+            <label htmlFor="command">STATA Command *</label>
             <input
               type="text"
-              value={post.politician_name}
-              id="politician_name"
-              name="politician_name"
+              value={post.command}
+              id="command"
+              name="command"
               onChange={handleChange}
-              placeholder="e.g., Joe Biden, Donald Trump, Justin Trudeau"
+              placeholder="e.g., regress, summarize, merge"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="party">Political Party *</label>
-            <input
-              type="text"
-              value={post.party}
-              id="party"
-              name="party"
+            <label htmlFor="error_category">Error Category *</label>
+            <select
+              value={post.error_category}
+              id="error_category"
+              name="error_category"
               onChange={handleChange}
-              placeholder="e.g., Democratic, Republican, Independent"
               required
-            />
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                fontSize: '16px',
+                fontFamily: 'inherit'
+              }}
+            >
+              <option value="">Select an error category</option>
+              <option value="Syntax Error">Syntax Error</option>
+              <option value="Data Error">Data Error</option>
+              <option value="Variable Not Found">Variable Not Found</option>
+              <option value="Type Mismatch">Type Mismatch</option>
+              <option value="Memory Error">Memory Error</option>
+              <option value="File I/O Error">File I/O Error</option>
+              <option value="Logic Error">Logic Error</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
           <div className="form-group">
-            <label htmlFor="country">Country *</label>
-            <input
-              type="text"
-              value={post.country}
-              id="country"
-              name="country"
-              onChange={handleChange}
-              placeholder="e.g., United States, Canada, United Kingdom"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="user_opinion">Your Opinion *</label>
+            <label htmlFor="description">Error Description *</label>
             <textarea
-              value={post.user_opinion}
-              id="user_opinion"
-              name="user_opinion"
+              value={post.description}
+              id="description"
+              name="description"
               onChange={handleChange}
-              placeholder="Share your detailed political opinion..."
+              placeholder="Describe the error, what you were trying to do, and any error messages you received..."
               required
               rows="6"
               style={{
@@ -171,14 +219,13 @@ const CreatePolipion = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="image_url">Image URL (optional)</label>
+            <label htmlFor="image_upload">Screenshot (optional)</label>
             <input
-              type="url"
-              value={post.image_url}
-              id="image_url"
-              name="image_url"
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
+              type="file"
+              id="image_upload"
+              name="image_upload"
+              accept="image/*"
+              onChange={handleImageChange}
             />
           </div>
 
@@ -187,7 +234,7 @@ const CreatePolipion = () => {
             className="create-btn"
             disabled={loading}
           >
-            {loading ? "Sharing..." : "Share Opinion"}
+            {loading ? "Submitting..." : "Submit Error Report"}
           </button>
         </form>
       </div>

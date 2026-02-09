@@ -78,11 +78,11 @@
 }
 
 .polipion-details-card {
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 30px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .polipion-details-header {
@@ -91,15 +91,15 @@
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .back-link,
 .edit-link {
-  color: #333;
+  color: var(--text-color);
   text-decoration: none;
   padding: 8px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
@@ -108,8 +108,8 @@
 
 .back-link:hover,
 .edit-link:hover {
-  background-color: #f8f9fa;
-  border-color: #999;
+  background-color: var(--bg-secondary);
+  border-color: var(--border-secondary);
 }
 
 .polipion-details-content {
@@ -120,15 +120,15 @@
 
 .polipion-details-image {
   text-align: center;
-  margin-bottom: 20px;
+  margin: 10px 0 20px;
 }
 
 .details-polipion-image {
-  width: 400px;
-  height: 300px;
+  max-width: 100%;
+  height: auto;
   border-radius: 8px;
   border: 1px solid #ddd;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   margin: 0 auto;
 }
@@ -291,13 +291,13 @@
 }
 
 .comments-section {
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
   padding-top: 30px;
 }
 
 .comments-section h3 {
   font-size: 1.3em;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 20px;
   font-weight: 600;
 }
@@ -305,24 +305,26 @@
 .add-comment-form {
   margin-bottom: 30px;
   padding: 20px;
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
   border-radius: 8px;
 }
 
 .comment-input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
   margin-bottom: 15px;
+  background-color: var(--input-bg);
+  color: var(--input-text);
 }
 
 .comment-input:focus {
   outline: none;
-  border-color: #333;
+  border-color: var(--input-focus-border);
 }
 
 .submit-comment-btn {
@@ -358,9 +360,9 @@
 
 .comment-item {
   padding: 15px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background-color: white;
+  background-color: var(--card-bg);
 }
 
 .comment-header {

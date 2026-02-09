@@ -1,116 +1,132 @@
-/* Light Theme (Default) */
+/* Light Theme (Default) - Academic Palette */
 :root,
 [data-theme="light"] {
   /* Background Colors */
-  --bg-color: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #f0f0f0;
+  --bg-color: #f9fafb;
+  --bg-secondary: #f3f4f6;
+  --bg-tertiary: #e5e7eb;
   
   /* Text Colors */
-  --text-color: #333333;
-  --text-secondary: #666666;
-  --text-muted: #999999;
+  --text-color: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
   
   /* Border Colors */
-  --border-color: #e0e0e0;
-  --border-secondary: #ddd;
-  --border-focus: #333;
+  --border-color: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --border-focus: #4f46e5;
   
   /* Button Colors */
-  --btn-primary-bg: #333333;
+  --btn-primary-bg: #4f46e5;
   --btn-primary-text: #ffffff;
-  --btn-primary-hover: #555555;
+  --btn-primary-hover: #4338ca;
   
   --btn-secondary-bg: transparent;
-  --btn-secondary-text: #333333;
-  --btn-secondary-border: #333333;
-  --btn-secondary-hover-bg: #333333;
+  --btn-secondary-text: #4f46e5;
+  --btn-secondary-border: #4f46e5;
+  --btn-secondary-hover-bg: #4f46e5;
   --btn-secondary-hover-text: #ffffff;
   
   /* Card Colors */
   --card-bg: #ffffff;
-  --card-border: #e0e0e0;
-  --card-hover-border: #999999;
+  --card-border: #e2e8f0;
+  --card-hover-border: #cbd5e1;
   
   /* Sidebar Colors */
   --sidebar-bg: #ffffff;
-  --sidebar-border: #e0e0e0;
-  --sidebar-nav-hover: #f8f9fa;
-  --sidebar-nav-active: #333333;
+  --sidebar-border: #e2e8f0;
+  --sidebar-nav-hover: #f1f5f9;
+  --sidebar-nav-active: #4f46e5;
   --sidebar-nav-active-text: #ffffff;
   
   /* Form Colors */
   --input-bg: #ffffff;
-  --input-border: #ddd;
-  --input-focus-border: #333;
-  --input-text: #333;
+  --input-border: #cbd5e1;
+  --input-focus-border: #4f46e5;
+  --input-text: #1e293b;
   
   /* Vote Button Colors */
-  --vote-like-active: #4caf50;
-  --vote-dislike-active: #f44336;
-  --vote-inactive: #e0e0e0;
+  --vote-like-active: #10b981;
+  --vote-dislike-active: #ef4444;
+  --vote-inactive: #e5e7eb;
   
   /* Shadow Colors */
-  --shadow-light: rgba(0, 0, 0, 0.1);
-  --shadow-medium: rgba(0, 0, 0, 0.15);
-  --shadow-heavy: rgba(0, 0, 0, 0.2);
+  --shadow-light: rgba(0, 0, 0, 0.05);
+  --shadow-medium: rgba(0, 0, 0, 0.1);
+  --shadow-heavy: rgba(0, 0, 0, 0.15);
+  
+  /* Academic/Technical Colors */
+  --accent-indigo: #4f46e5;
+  --accent-slate: #1e293b;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #3b82f6;
 }
 
-/* Dark Theme */
+/* Dark Theme - Academic Palette */
 [data-theme="dark"] {
   /* Background Colors */
-  --bg-color: #1a1a1a;
-  --bg-secondary: #2d2d2d;
-  --bg-tertiary: #3a3a3a;
+  --bg-color: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
   
   /* Text Colors */
-  --text-color: #e0e0e0;
-  --text-secondary: #b0b0b0;
-  --text-muted: #888888;
+  --text-color: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   
   /* Border Colors */
-  --border-color: #404040;
-  --border-secondary: #555555;
-  --border-focus: #4a90e2;
+  --border-color: #334155;
+  --border-secondary: #475569;
+  --border-focus: #6366f1;
   
   /* Button Colors */
-  --btn-primary-bg: #4a90e2;
+  --btn-primary-bg: #6366f1;
   --btn-primary-text: #ffffff;
-  --btn-primary-hover: #357abd;
+  --btn-primary-hover: #4f46e5;
   
   --btn-secondary-bg: transparent;
-  --btn-secondary-text: #4a90e2;
-  --btn-secondary-border: #4a90e2;
-  --btn-secondary-hover-bg: #4a90e2;
+  --btn-secondary-text: #6366f1;
+  --btn-secondary-border: #6366f1;
+  --btn-secondary-hover-bg: #6366f1;
   --btn-secondary-hover-text: #ffffff;
   
   /* Card Colors */
-  --card-bg: #2d2d2d;
-  --card-border: #404040;
-  --card-hover-border: #666666;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --card-hover-border: #475569;
   
   /* Sidebar Colors */
-  --sidebar-bg: #2d2d2d;
-  --sidebar-border: #404040;
-  --sidebar-nav-hover: #3a3a3a;
-  --sidebar-nav-active: #4a90e2;
+  --sidebar-bg: #1e293b;
+  --sidebar-border: #334155;
+  --sidebar-nav-hover: #334155;
+  --sidebar-nav-active: #6366f1;
   --sidebar-nav-active-text: #ffffff;
   
   /* Form Colors */
-  --input-bg: #3a3a3a;
-  --input-border: #555555;
-  --input-focus-border: #4a90e2;
-  --input-text: #e0e0e0;
+  --input-bg: #334155;
+  --input-border: #475569;
+  --input-focus-border: #6366f1;
+  --input-text: #f1f5f9;
   
   /* Vote Button Colors */
-  --vote-like-active: #66bb6a;
-  --vote-dislike-active: #ef5350;
-  --vote-inactive: #555555;
+  --vote-like-active: #10b981;
+  --vote-dislike-active: #ef4444;
+  --vote-inactive: #475569;
   
   /* Shadow Colors */
-  --shadow-light: rgba(255, 255, 255, 0.1);
-  --shadow-medium: rgba(255, 255, 255, 0.15);
-  --shadow-heavy: rgba(255, 255, 255, 0.2);
+  --shadow-light: rgba(0, 0, 0, 0.2);
+  --shadow-medium: rgba(0, 0, 0, 0.3);
+  --shadow-heavy: rgba(0, 0, 0, 0.4);
+  
+  /* Academic/Technical Colors */
+  --accent-indigo: #6366f1;
+  --accent-slate: #f1f5f9;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #3b82f6;
 }
 
 /* Global theme transitions */

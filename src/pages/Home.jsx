@@ -9,32 +9,32 @@ const Home = () => {
   return (
     <div className="home-container">
       <div className="welcome-section">
-        <h1>Welcome to Polipine!🌟</h1>
+        <h1>Welcome to StataFix! 💻</h1>
         {isAuthenticated ? (
           <>
             <p className="welcome-text">
-              Welcome back, @{user.username}! Ready to share your political opinions?
+              Welcome back, @{user.username}! Ready to debug STATA errors? You have {user.cumulative_points || 0} points.
             </p>
             <div className="home-actions">
               <Link to="/polipions" className="home-btn primary">
-                View All Polipions
+                Browse Issues
               </Link>
-              <Link to="/my-polipions" className="home-btn secondary">
-                My Polipions
+              <Link to="/leaderboard" className="home-btn secondary">
+                View Leaderboard
               </Link>
               <Link to="/new" className="home-btn secondary">
-                Create New Polipion
+                Report Error
               </Link>
             </div>
           </>
         ) : (
           <>
             <p className="welcome-text">
-              Your platform to share and discover political opinions from around the world
+              Your gamified platform to solve STATA errors together. Earn points by helping others debug their code!
             </p>
             <div className="home-actions">
               <Link to="/register" className="home-btn primary">
-                Join Polipine
+                Join StataFix
               </Link>
               <Link to="/login" className="home-btn secondary">
                 Login
@@ -43,7 +43,7 @@ const Home = () => {
           </>
         )}
         <div className="welcome-image">
-          <span className="political-emoji">🗳️🏛️📊🌍</span>
+          <span className="political-emoji">💻📊🔍📈</span>
         </div>
       </div>
     </div>

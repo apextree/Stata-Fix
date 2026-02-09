@@ -11,6 +11,7 @@ const SeePolipions = () => {
   const [sortBy, setSortBy] = useState('created_at');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [showResolved, setShowResolved] = useState(false);
   const location = useLocation();
 
   // Debounce search term
@@ -24,7 +25,7 @@ const SeePolipions = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [location.pathname, sortBy, debouncedSearchTerm]);
+  }, [location.pathname, sortBy, debouncedSearchTerm, showResolved]);
 
 
   useEffect(() => {
@@ -44,32 +45,96 @@ const SeePolipions = () => {
     try {
       setLoading(true);
 
-      let query = supabase
-        .from("polipions")
-        .select("*");
+      // For 'hot' sorting, we need to get comment counts
+      if (sortBy === 'hot') {
+        // Get issues with comment counts - filter by resolved status
+        let hotQuery = supabase
+          .from("stata_issues")
+          .select("*");
+        
+        // Server-side filter: only fetch unresolved by default, or all if showResolved is true
+        if (!showResolved) {
+          hotQuery = hotQuery.eq('is_resolved', false);
+        }
+        // If showResolved is true, no filter is applied (fetch all)
 
-      // Apply search filter if search term exists
-      if (debouncedSearchTerm.trim()) {
-        query = query.ilike('post_title', `%${debouncedSearchTerm}%`);
-      }
+        const { data: issuesData, error: issuesError } = await hotQuery;
 
-      // Apply sorting
-      if (sortBy === 'created_at') {
-        query = query.order('created_at', { ascending: false });
-      } else if (sortBy === 'post_likes') {
-        query = query.order('post_likes', { ascending: false });
-      }
+        if (issuesError) {
+          console.error("Error fetching STATA issues:", issuesError);
+          setPosts([]);
+          setLoading(false);
+          return;
+        }
 
-      const { data, error } = await query;
+        // Get comment counts for each issue
+        const issuesWithCounts = await Promise.all(
+          (issuesData || []).map(async (issue) => {
+            const { count } = await supabase
+              .from("comments")
+              .select("*", { count: 'exact', head: true })
+              .eq("issue_id", issue.id);
 
-      if (error) {
-        console.error("Error fetching polipions:", error);
-        setPosts([]);
+            return {
+              ...issue,
+              comment_count: count || 0,
+              hot_score: (issue.upvotes || 0) - (issue.downvotes || 0) + (count || 0) * 2
+            };
+          })
+        );
+
+        // Apply search filter
+        let filtered = issuesWithCounts;
+        if (debouncedSearchTerm.trim()) {
+          filtered = issuesWithCounts.filter(issue => 
+            issue.command?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+            issue.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+            issue.title?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+          );
+        }
+
+        // Sort by hot score
+        filtered.sort((a, b) => b.hot_score - a.hot_score);
+        setPosts(filtered);
       } else {
-        setPosts(data || []);
+        // Regular sorting
+        let query = supabase
+          .from("stata_issues")
+          .select("*");
+
+        // Server-side filter: only fetch unresolved by default, or all if showResolved is true
+        if (!showResolved) {
+          query = query.eq('is_resolved', false);
+        }
+        // If showResolved is true, no filter is applied (fetch all)
+
+        // Apply search filter if search term exists
+        if (debouncedSearchTerm.trim()) {
+          query = query.or(`command.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%,title.ilike.%${debouncedSearchTerm}%`);
+        }
+
+        // Apply sorting
+        if (sortBy === 'created_at') {
+          query = query.order('created_at', { ascending: false });
+        } else if (sortBy === 'is_resolved') {
+          query = query.order('is_resolved', { ascending: true }).order('created_at', { ascending: false });
+        } else if (sortBy === 'upvotes_desc') {
+          query = query.order('upvotes', { ascending: false });
+        } else if (sortBy === 'upvotes_asc') {
+          query = query.order('upvotes', { ascending: true });
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("Error fetching STATA issues:", error);
+          setPosts([]);
+        } else {
+          setPosts(data || []);
+        }
       }
     } catch (error) {
-      alert("Unexpected error loading polipions: " + error.message);
+      alert("Unexpected error loading STATA issues: " + error.message);
       setPosts([]);
     } finally {
       setLoading(false);
@@ -79,7 +144,7 @@ const SeePolipions = () => {
   if (loading) {
     return (
       <div className="loading-container">
-        <h2>Loading your Polipions...</h2>
+        <h2>Loading STATA issues...</h2>
       </div>
     );
   }
@@ -94,7 +159,7 @@ const SeePolipions = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by title..."
+            placeholder="Search by command or description..."
             className="control-input"
           />
         </div>
@@ -107,8 +172,11 @@ const SeePolipions = () => {
             onChange={(e) => setSortBy(e.target.value)}
             className="control-select"
           >
-            <option value="created_at">Creation Time</option>
-            <option value="post_likes">Upvotes</option>
+            <option value="hot">🔥 Hot (Most Active)</option>
+            <option value="created_at">📅 Newest First</option>
+            <option value="upvotes_desc">⬆ Most Upvotes</option>
+            <option value="upvotes_asc">⬇ Least Upvotes</option>
+            <option value="is_resolved">❓ Unsolved First</option>
           </select>
         </div>
 
@@ -118,34 +186,47 @@ const SeePolipions = () => {
         >
           Refresh
         </button>
+
+        <div className="toggle-control" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            id="showResolved"
+            checked={showResolved}
+            onChange={(e) => setShowResolved(e.target.checked)}
+            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+          />
+          <label htmlFor="showResolved" className="control-label" style={{ cursor: 'pointer', margin: 0 }}>
+            Show Resolved Issues
+          </label>
+        </div>
       </div>
       
       {posts && posts.length > 0 ? (
         <div className="forum-posts-list">
           {posts.map((post) => (
-            <Card
-              key={post.id}
-              id={post.id}
-              post_title={post.post_title}
-              party={post.party}
-              country={post.country}
-              user_opinion={post.user_opinion}
-              post_likes={post.post_likes}
-              post_dislikes={post.post_dislikes}
-              created_at={post.created_at}
-              image_url={post.image_url}
-              politician_name={post.politician_name}
-              username={post.username}
-            />
-          ))}
+              <Card
+                key={post.id}
+                id={post.id}
+                title={post.title}
+                command={post.command}
+                error_category={post.error_category}
+                description={post.description}
+                created_at={post.created_at}
+                image_url={post.image_url}
+                username={post.username}
+                is_resolved={post.is_resolved}
+                upvotes={post.upvotes}
+                downvotes={post.downvotes}
+              />
+            ))}
         </div>
       ) : (
         <div className="no-polipions">
-          <h2>No Polipions to display 😔</h2>
-          <p>No political opinions have been shared yet. Be the first to share your thoughts!</p>
+          <h2>No STATA issues to display</h2>
+          <p>No errors have been reported yet. Be the first to share an issue!</p>
           <Link to="/new">
             <button className="add-polipion-btn">
-              Share Your First Opinion
+              Report Your First Error
             </button>
           </Link>
         </div>

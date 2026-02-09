@@ -22,7 +22,7 @@ const MyPolipions = () => {
       setLoading(true);
       
       let query = supabase
-        .from("polipions")
+        .from("stata_issues")
         .select("*")
         .eq("username", user.username);
 
@@ -34,11 +34,11 @@ const MyPolipions = () => {
         case 'oldest':
           query = query.order('created_at', { ascending: true });
           break;
-        case 'most_liked':
-          query = query.order('post_likes', { ascending: false });
+        case 'resolved':
+          query = query.order('is_resolved', { ascending: false }).order('created_at', { ascending: false });
           break;
-        case 'most_commented':
-          query = query.order('post_comments_number', { ascending: false });
+        case 'unresolved':
+          query = query.order('is_resolved', { ascending: true }).order('created_at', { ascending: false });
           break;
         default:
           query = query.order('created_at', { ascending: false });
@@ -47,7 +47,7 @@ const MyPolipions = () => {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Error fetching my polipions:", error);
+        console.error("Error fetching my STATA issues:", error);
       } else {
         setPosts(data || []);
       }
@@ -66,7 +66,7 @@ const MyPolipions = () => {
     return (
       <div className="my-polipions-container">
         <div className="loading-container">
-          <h2>Loading your polipions...</h2>
+          <h2>Loading your STATA issues...</h2>
         </div>
       </div>
     );
@@ -75,9 +75,9 @@ const MyPolipions = () => {
   return (
     <div className="my-polipions-container">
       <div className="my-polipions-header">
-        <h1>My Polipions</h1>
+        <h1>My STATA Issues</h1>
         <p className="user-stats">
-          You have created <strong>{posts.length}</strong> polipion{posts.length !== 1 ? 's' : ''}
+          You have reported <strong>{posts.length}</strong> issue{posts.length !== 1 ? 's' : ''}
         </p>
         
         <div className="controls-section">
@@ -91,13 +91,13 @@ const MyPolipions = () => {
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
-              <option value="most_liked">Most Liked</option>
-              <option value="most_commented">Most Commented</option>
+              <option value="resolved">Resolved First</option>
+              <option value="unresolved">Unresolved First</option>
             </select>
           </div>
           
           <Link to="/new" className="add-polipion-btn">
-            ➕ Create New Polipion
+            ➕ Report New Error
           </Link>
         </div>
       </div>
@@ -108,25 +108,25 @@ const MyPolipions = () => {
             <Card
               key={post.id}
               id={post.id}
-              post_title={post.post_title}
-              party={post.party}
-              country={post.country}
-              user_opinion={post.user_opinion}
-              post_likes={post.post_likes}
-              post_dislikes={post.post_dislikes}
+              title={post.title}
+              command={post.command}
+              error_category={post.error_category}
+              description={post.description}
               created_at={post.created_at}
               image_url={post.image_url}
-              politician_name={post.politician_name}
               username={post.username}
+              is_resolved={post.is_resolved}
+              upvotes={post.upvotes}
+              downvotes={post.downvotes}
             />
           ))}
         </div>
       ) : (
         <div className="no-polipions">
-          <h2>No Polipions Yet</h2>
-          <p>You haven't created any polipions yet. Share your first political opinion!</p>
+          <h2>No Issues Yet</h2>
+          <p>You haven't reported any STATA errors yet. Report your first issue!</p>
           <Link to="/new" className="add-polipion-btn">
-            ➕ Create Your First Polipion
+            ➕ Report Your First Error
           </Link>
         </div>
       )}

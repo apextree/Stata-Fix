@@ -14,11 +14,18 @@ const Sidebar = () => {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h2>Polipine</h2>
-        <span className="political-elements">🗳️🏛️📊🌍</span>
+        <h2>StataFix</h2>
+        <span className="political-elements">💻📊🔍📈</span>
         {isAuthenticated && (
           <div className="user-info">
             <span className="username">@{user.username}</span>
+            <span className="user-points" style={{
+              fontSize: '12px',
+              color: 'var(--accent-indigo)',
+              fontWeight: 'bold'
+            }}>
+              ⭐ {user.cumulative_points || 0} pts
+            </span>
           </div>
         )}
       </div>
@@ -38,8 +45,8 @@ const Sidebar = () => {
               to="/polipions"
               className={`nav-item ${location.pathname === '/polipions' ? 'active' : ''}`}
             >
-              <span className="nav-icon">👁️</span>
-              All Polipions
+              <span className="nav-icon">🔍</span>
+              Browse Issues
             </Link>
 
             <Link
@@ -47,7 +54,7 @@ const Sidebar = () => {
               className={`nav-item ${location.pathname === '/my-polipions' ? 'active' : ''}`}
             >
               <span className="nav-icon">📝</span>
-              My Polipions
+              My Issues
             </Link>
 
             <Link
@@ -55,7 +62,15 @@ const Sidebar = () => {
               className={`nav-item ${location.pathname === '/new' ? 'active' : ''}`}
             >
               <span className="nav-icon">➕</span>
-              Add Polipion
+              Report Error
+            </Link>
+
+            <Link
+              to="/leaderboard"
+              className={`nav-item ${location.pathname === '/leaderboard' ? 'active' : ''}`}
+            >
+              <span className="nav-icon">🏆</span>
+              Leaderboard
             </Link>
           </>
         ) : (
