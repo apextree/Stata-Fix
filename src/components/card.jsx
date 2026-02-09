@@ -2,6 +2,7 @@ import "./card.css";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../client";
+import { deleteIssueImageByUrl } from "../utils/storage";
 
 const Card = (props) => {
   const { user } = useAuth();
@@ -11,6 +12,13 @@ const Card = (props) => {
   const deletePolipion = async () => {
     if (window.confirm('Are you sure you want to delete this STATA issue?')) {
       try {
+        if (props.image_url) {
+          const { error: deleteError } = await deleteIssueImageByUrl(props.image_url);
+          if (deleteError) {
+            console.error("Error deleting image:", deleteError);
+          }
+        }
+
         // First delete associated comments
         await supabase
           .from("comments")

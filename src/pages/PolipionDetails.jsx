@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../client";
+import { resolveIssueImageUrl } from "../utils/storage";
 import "./PolipionDetails.css";
 
 const PolipionDetails = () => {
@@ -433,6 +434,8 @@ const PolipionDetails = () => {
     );
   }
 
+  const imageSrc = resolveIssueImageUrl(polipion?.image_url);
+
   return (
     <div className="polipion-details-container">
       <div className="polipion-details-card">
@@ -459,19 +462,6 @@ const PolipionDetails = () => {
         </div>
 
         <div className="polipion-details-content">
-          {polipion.image_url && (
-            <div className="polipion-details-image">
-              <img
-                src={polipion.image_url}
-                alt="STATA error screenshot"
-                className="details-polipion-image"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-
           <div className="polipion-info">
             {/* Reddit-style title */}
             <h2 className="polipion-details-title" style={{
@@ -576,6 +566,16 @@ const PolipionDetails = () => {
                 {polipion.description}
               </p>
             </div>
+
+            {imageSrc && (
+              <div className="polipion-details-image">
+                <img
+                  src={imageSrc}
+                  alt="STATA error screenshot"
+                  className="details-polipion-image"
+                />
+              </div>
+            )}
 
             <div className="comments-section">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

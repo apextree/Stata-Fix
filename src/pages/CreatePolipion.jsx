@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./createPolipion.css";
 import { supabase } from "../client";
+import { uploadIssueImage } from "../utils/storage";
 
 const CreatePolipion = () => {
   const navigate = useNavigate();
@@ -12,9 +13,9 @@ const CreatePolipion = () => {
     command: "",
     error_category: "",
     description: "",
-    image_url: "",
   });
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -24,6 +25,11 @@ const CreatePolipion = () => {
         [name]: value,
       };
     });
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files && event.target.files[0];
+    setImageFile(file || null);
   };
 
   const createPost = async (event) => {
@@ -39,6 +45,18 @@ const CreatePolipion = () => {
     try {
       console.log("Creating STATA Issue:", post);
 
+      let imageUrl = null;
+      if (imageFile) {
+        const { publicUrl, error: uploadError } = await uploadIssueImage(imageFile, user.id);
+        if (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          alert("Error uploading image: " + uploadError.message);
+          setLoading(false);
+          return;
+        }
+        imageUrl = publicUrl;
+      }
+
       // Insert the STATA issue
       const { data: issueData, error: issueError } = await supabase
         .from("stata_issues")
@@ -49,7 +67,7 @@ const CreatePolipion = () => {
           command: post.command,
           error_category: post.error_category,
           description: post.description,
-          image_url: post.image_url || null,
+          image_url: imageUrl,
           is_resolved: false,
           upvotes: 0,
           downvotes: 0
@@ -99,8 +117,8 @@ const CreatePolipion = () => {
         command: "",
         error_category: "",
         description: "",
-        image_url: "",
       });
+      setImageFile(null);
 
       setTimeout(() => {
         navigate("/polipions");
@@ -201,14 +219,13 @@ const CreatePolipion = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="image_url">Screenshot URL (optional)</label>
+            <label htmlFor="image_upload">Screenshot (optional)</label>
             <input
-              type="url"
-              value={post.image_url}
-              id="image_url"
-              name="image_url"
-              onChange={handleChange}
-              placeholder="https://example.com/screenshot.jpg"
+              type="file"
+              id="image_upload"
+              name="image_upload"
+              accept="image/*"
+              onChange={handleImageChange}
             />
           </div>
 

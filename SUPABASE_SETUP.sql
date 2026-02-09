@@ -186,6 +186,30 @@ LEFT JOIN comments c ON c.issue_id = si.id
 GROUP BY si.id;
 
 -- ==============================================
+-- 7. STORAGE POLICIES (REQUIRED FOR IMAGE UPLOADS)
+-- ==============================================
+-- These policies allow public uploads/deletes for the issue-images bucket.
+-- Run in Supabase SQL editor (Storage uses the storage.objects table).
+
+-- Allow anyone to read objects from the public bucket
+DROP POLICY IF EXISTS "Public read for issue images" ON storage.objects;
+CREATE POLICY "Public read for issue images"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'issue-images');
+
+-- Allow anyone (anon key) to upload to the bucket
+DROP POLICY IF EXISTS "Public upload for issue images" ON storage.objects;
+CREATE POLICY "Public upload for issue images"
+  ON storage.objects FOR INSERT
+  WITH CHECK (bucket_id = 'issue-images');
+
+-- Allow anyone (anon key) to delete from the bucket
+DROP POLICY IF EXISTS "Public delete for issue images" ON storage.objects;
+CREATE POLICY "Public delete for issue images"
+  ON storage.objects FOR DELETE
+  USING (bucket_id = 'issue-images');
+
+-- ==============================================
 -- SETUP COMPLETE
 -- ==============================================
 -- Next steps:

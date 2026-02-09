@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./editPolipion.css";
 import { supabase } from "../client";
+import { uploadIssueImage, deleteIssueImageByUrl, resolveIssueImageUrl } from "../utils/storage";
 
 const EditPolipion = () => {
   const { id } = useParams();
@@ -19,6 +20,7 @@ const EditPolipion = () => {
     user_id: "",
   });
   const [loading, setLoading] = useState(true);
+  const [newImageFile, setNewImageFile] = useState(null);
 
   useEffect(() => {
     fetchPost();
@@ -52,6 +54,26 @@ const EditPolipion = () => {
     }
 
     try {
+      let imageUrlToSave = post.image_url || null;
+
+      if (newImageFile) {
+        const { publicUrl, error: uploadError } = await uploadIssueImage(newImageFile, post.user_id);
+        if (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          alert("Error uploading image: " + uploadError.message);
+          return;
+        }
+
+        imageUrlToSave = publicUrl;
+
+        if (post.image_url && post.image_url !== imageUrlToSave) {
+          const { error: deleteError } = await deleteIssueImageByUrl(post.image_url);
+          if (deleteError) {
+            console.error("Error deleting old image:", deleteError);
+          }
+        }
+      }
+
       const { error } = await supabase
         .from("stata_issues")
         .update({
@@ -59,7 +81,7 @@ const EditPolipion = () => {
           command: post.command,
           error_category: post.error_category,
           description: post.description,
-          image_url: post.image_url || null,
+          image_url: imageUrlToSave,
         })
         .eq("id", id);
 
@@ -86,11 +108,23 @@ const EditPolipion = () => {
     });
   };
 
+  const handleImageChange = (event) => {
+    const file = event.target.files && event.target.files[0];
+    setNewImageFile(file || null);
+  };
+
   const deletePolipion = async (event) => {
     event.preventDefault();
 
     if (window.confirm('Are you sure you want to delete this STATA issue?')) {
       try {
+        if (post.image_url) {
+          const { error: deleteError } = await deleteIssueImageByUrl(post.image_url);
+          if (deleteError) {
+            console.error("Error deleting image:", deleteError);
+          }
+        }
+
         // First delete associated comments
         await supabase
           .from("comments")
@@ -109,6 +143,40 @@ const EditPolipion = () => {
         console.error("Unexpected error:", error);
         alert("Unexpected error occurred: " + error.message);
       }
+    }
+  };
+
+  const removeImage = async () => {
+    if (!post.image_url) return;
+
+    if (!window.confirm("Remove the current image from this issue?")) {
+      return;
+    }
+
+    try {
+      const { error: deleteError } = await deleteIssueImageByUrl(post.image_url);
+      if (deleteError) {
+        console.error("Error deleting image:", deleteError);
+        alert("Error deleting image: " + deleteError.message);
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from("stata_issues")
+        .update({ image_url: null })
+        .eq("id", id);
+
+      if (updateError) {
+        console.error("Error clearing image:", updateError);
+        alert("Error clearing image: " + updateError.message);
+        return;
+      }
+
+      setPost((prev) => ({ ...prev, image_url: "" }));
+      setNewImageFile(null);
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      alert("Unexpected error occurred: " + error.message);
     }
   };
 
@@ -204,15 +272,34 @@ const EditPolipion = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="image_url">Screenshot URL (optional)</label>
+            <label htmlFor="image_upload">Screenshot (optional)</label>
             <input
-              type="url"
-              id="image_url"
-              name="image_url"
-              value={post.image_url}
-              onChange={handleChange}
-              placeholder="https://example.com/screenshot.jpg"
+              type="file"
+              id="image_upload"
+              name="image_upload"
+              accept="image/*"
+              onChange={handleImageChange}
             />
+            {resolveIssueImageUrl(post.image_url) && (
+              <div style={{ marginTop: "10px" }}>
+                <img
+                  src={resolveIssueImageUrl(post.image_url)}
+                  alt="Current STATA issue screenshot"
+                  style={{
+                    maxWidth: "100%",
+                    borderRadius: "6px",
+                    border: "1px solid var(--card-border)",
+                  }}
+                />
+                <button
+                  type="button"
+                  className="remove-image-btn"
+                  onClick={removeImage}
+                >
+                  Remove Image
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="form-actions">
