@@ -5,12 +5,14 @@ import './Auth.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
+    email: '',
     username: '',
     password: '',
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -25,10 +27,11 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     // Validation
-    if (!formData.username || !formData.password || !formData.confirmPassword) {
+    if (!formData.email || !formData.username || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all fields');
       setLoading(false);
       return;
@@ -60,10 +63,14 @@ const Register = () => {
       return;
     }
 
-    const result = await register(formData.username, formData.password);
+    const result = await register(formData.email, formData.username, formData.password);
     
     if (result.success) {
-      navigate('/statafix');
+      if (result.needsEmailConfirmation) {
+        setSuccess('Account created! Check your email to confirm your account before logging in.');
+      } else {
+        navigate('/polipions');
+      }
     } else {
       setError(result.error);
     }
@@ -78,8 +85,22 @@ const Register = () => {
         <p className="auth-subtitle">Create an account to share your Stata issues</p>
         
         {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
         
         <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input

@@ -10,7 +10,7 @@ const Home = () => {
     <div className="home-container">
       <div className="welcome-section">
         <h1>Welcome to StataFix! 💻</h1>
-        {isAuthenticated ? (
+        {isAuthenticated && user ? (
           <>
             <p className="welcome-text">
               Welcome back, @{user.username}! Ready to debug STATA errors? You have {user.cumulative_points || 0} points.

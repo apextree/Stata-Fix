@@ -16,7 +16,7 @@ const Sidebar = () => {
       <div className="sidebar-header">
         <h2>StataFix</h2>
         <span className="political-elements">💻📊🔍📈</span>
-        {isAuthenticated && (
+        {isAuthenticated && user && (
           <div className="user-info">
             <span className="username">@{user.username}</span>
             <span className="user-points" style={{

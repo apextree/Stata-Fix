@@ -5,7 +5,7 @@ import './Auth.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
@@ -26,13 +26,13 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    if (!formData.username || !formData.password) {
+    if (!formData.email || !formData.password) {
       setError('Please fill in all fields');
       setLoading(false);
       return;
     }
 
-    const result = await login(formData.username, formData.password);
+    const result = await login(formData.email, formData.password);
     
     if (result.success) {
       navigate('/polipions');
@@ -53,14 +53,14 @@ const Login = () => {
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="email">Email</label>
             <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
-              placeholder="Enter your username"
+              placeholder="Enter your email"
               required
             />
           </div>
@@ -90,6 +90,9 @@ const Login = () => {
         <div className="auth-links">
           <p>
             Don't have an account? <Link to="/register">Register here</Link>
+          </p>
+          <p style={{ marginTop: '10px' }}>
+            <Link to="/forgot-password">Forgot your password?</Link>
           </p>
         </div>
       </div>

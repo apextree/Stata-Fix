@@ -24,7 +24,7 @@ const MyPolipions = () => {
       let query = supabase
         .from("stata_issues")
         .select("*")
-        .eq("username", user.username);
+        .eq("user_id", user.id);
 
       // Apply sorting
       switch (sortBy) {

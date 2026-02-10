@@ -10,6 +10,8 @@ import Leaderboard from './pages/Leaderboard'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import NotFound from './pages/NotFound'
 import Sidebar from './components/Sidebar'
 import ThemeToggle from './components/ThemeToggle'
@@ -31,6 +33,14 @@ const App = () => {
     {
       path: "/register",
       element: <Register />
+    },
+    {
+      path: "/forgot-password",
+      element: <ForgotPassword />
+    },
+    {
+      path: "/reset-password",
+      element: <ResetPassword />
     },
     {
       path: "/polipions",

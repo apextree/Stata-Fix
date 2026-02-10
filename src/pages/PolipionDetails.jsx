@@ -111,57 +111,15 @@ const PolipionDetails = () => {
     }
 
     try {
-      const isUpvote = voteType === 'upvote';
-      const currentVote = userVote;
+      const { error } = await supabase.rpc("vote_issue", {
+        issue_id: id,
+        vote_type: voteType
+      });
 
-      // Remove existing vote if clicking same button
-      if (currentVote === voteType) {
-        await supabase
-          .from("user_votes")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("target_id", id)
-          .eq("target_type", "issue");
+      if (error) throw error;
 
-        // Update counts
-        const newUpvotes = isUpvote ? (polipion.upvotes || 0) - 1 : (polipion.upvotes || 0);
-        const newDownvotes = !isUpvote ? (polipion.downvotes || 0) - 1 : (polipion.downvotes || 0);
-        
-        await supabase
-          .from("stata_issues")
-          .update({ upvotes: newUpvotes, downvotes: newDownvotes })
-          .eq("id", id);
-
-        setPolipion(prev => ({ ...prev, upvotes: newUpvotes, downvotes: newDownvotes }));
-        setUserVote(null);
-      } else {
-        // Update or insert vote
-        await supabase
-          .from("user_votes")
-          .upsert({
-            user_id: user.id,
-            target_id: id,
-            target_type: "issue",
-            vote_type: voteType
-          }, { onConflict: 'user_id,target_id,target_type' });
-
-        // Update counts
-        let newUpvotes = polipion.upvotes || 0;
-        let newDownvotes = polipion.downvotes || 0;
-
-        if (currentVote === 'upvote') newUpvotes--;
-        if (currentVote === 'downvote') newDownvotes--;
-        if (isUpvote) newUpvotes++;
-        else newDownvotes++;
-
-        await supabase
-          .from("stata_issues")
-          .update({ upvotes: newUpvotes, downvotes: newDownvotes })
-          .eq("id", id);
-
-        setPolipion(prev => ({ ...prev, upvotes: newUpvotes, downvotes: newDownvotes }));
-        setUserVote(voteType);
-      }
+      await fetchPolipion();
+      await fetchUserVotes();
     } catch (error) {
       console.error("Error voting:", error);
       alert("Error voting: " + error.message);
@@ -175,69 +133,22 @@ const PolipionDetails = () => {
     }
 
     try {
-      const isUpvote = voteType === 'upvote';
-      const currentVote = commentVotes[commentId];
-      const comment = comments.find(c => c.id === commentId);
+      const { error } = await supabase.rpc("vote_comment", {
+        comment_id: commentId,
+        vote_type: voteType
+      });
 
-      // Remove existing vote if clicking same button
-      if (currentVote === voteType) {
-        await supabase
-          .from("user_votes")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("target_id", commentId)
-          .eq("target_type", "comment");
+      if (error) throw error;
 
-        // Update counts
-        const newUpvotes = isUpvote ? (comment.upvotes || 0) - 1 : (comment.upvotes || 0);
-        const newDownvotes = !isUpvote ? (comment.downvotes || 0) - 1 : (comment.downvotes || 0);
-        
-        await supabase
-          .from("comments")
-          .update({ upvotes: newUpvotes, downvotes: newDownvotes })
-          .eq("id", commentId);
-
-        setComments(prev => prev.map(c => 
-          c.id === commentId ? { ...c, upvotes: newUpvotes, downvotes: newDownvotes } : c
-        ));
-        setCommentVotes(prev => ({ ...prev, [commentId]: null }));
-      } else {
-        // Update or insert vote
-        await supabase
-          .from("user_votes")
-          .upsert({
-            user_id: user.id,
-            target_id: commentId,
-            target_type: "comment",
-            vote_type: voteType
-          }, { onConflict: 'user_id,target_id,target_type' });
-
-        // Update counts
-        let newUpvotes = comment.upvotes || 0;
-        let newDownvotes = comment.downvotes || 0;
-
-        if (currentVote === 'upvote') newUpvotes--;
-        if (currentVote === 'downvote') newDownvotes--;
-        if (isUpvote) newUpvotes++;
-        else newDownvotes++;
-
-        await supabase
-          .from("comments")
-          .update({ upvotes: newUpvotes, downvotes: newDownvotes })
-          .eq("id", commentId);
-
-        setComments(prev => prev.map(c => 
-          c.id === commentId ? { ...c, upvotes: newUpvotes, downvotes: newDownvotes } : c
-        ));
-        setCommentVotes(prev => ({ ...prev, [commentId]: voteType }));
-      }
+      await fetchComments();
+      await fetchUserVotes();
     } catch (error) {
       console.error("Error voting on comment:", error);
       alert("Error voting: " + error.message);
     }
   };
 
-  const handleMarkAsFix = async (commentId, commentAuthorId) => {
+  const handleMarkAsFix = async (commentId) => {
     if (!user || user.id !== polipion.user_id) {
       alert("Only the issue author can mark a fix");
       return;
@@ -261,32 +172,12 @@ const PolipionDetails = () => {
 
         if (issueError) throw issueError;
 
-        // Add points to the commenter (+5 for accepted fix)
-        const { error: pointError } = await supabase
-          .from("point_ledger")
-          .insert({
-            user_id: commentAuthorId,
-            points_change: 5,
-            reason: 'ACCEPTED_FIX'
-          });
+        const { error: pointError } = await supabase.rpc(
+          "award_points_for_accepted_fix",
+          { comment_id: commentId }
+        );
 
         if (pointError) throw pointError;
-
-        // Update commenter's cumulative points
-        const { data: commenterProfile } = await supabase
-          .from("profiles")
-          .select("cumulative_points")
-          .eq("id", commentAuthorId)
-          .single();
-
-        if (commenterProfile) {
-          await supabase
-            .from("profiles")
-            .update({ 
-              cumulative_points: (commenterProfile.cumulative_points || 0) + 5 
-            })
-            .eq("id", commentAuthorId);
-        }
 
         // Refresh data
         fetchPolipion();
@@ -359,32 +250,15 @@ const PolipionDetails = () => {
       const isOwnPost = user.id === polipion.user_id;
       
       if (!isOwnPost) {
-        // Add points to point_ledger (+3 for suggestion)
-        const { error: pointError } = await supabase
-          .from("point_ledger")
-          .insert({
-            user_id: user.id,
-            points_change: 3,
-            reason: 'SUGGESTION'
-          });
+        const { error: pointError } = await supabase.rpc(
+          "award_points_for_comment",
+          { issue_id: id }
+        );
 
         if (pointError) {
           console.error("Error adding points:", pointError);
         }
 
-        // Update user's cumulative points
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({ 
-            cumulative_points: (user.cumulative_points || 0) + 3 
-          })
-          .eq("id", user.id);
-
-        if (profileError) {
-          console.error("Error updating profile points:", profileError);
-        }
-
-        // Refresh user points
         await refreshUserPoints();
       }
 
@@ -700,7 +574,7 @@ const PolipionDetails = () => {
 
                         {user && user.id === polipion.user_id && !polipion.is_resolved && !comment.is_verified_fix && comment.user_id !== user.id && (
                           <button
-                            onClick={() => handleMarkAsFix(comment.id, comment.user_id)}
+                            onClick={() => handleMarkAsFix(comment.id)}
                             style={{
                               backgroundColor: '#10b981',
                               color: 'white',

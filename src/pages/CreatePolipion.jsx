@@ -82,29 +82,9 @@ const CreatePolipion = () => {
         return;
       }
 
-      // Add points to the point_ledger (+5 for posting an error)
-      const { error: pointError } = await supabase
-        .from("point_ledger")
-        .insert({
-          user_id: user.id,
-          points_change: 5,
-          reason: 'POST_ERROR'
-        });
-
+      const { error: pointError } = await supabase.rpc("award_points_for_issue_post");
       if (pointError) {
         console.error("Error adding points:", pointError);
-      }
-
-      // Update user's cumulative points
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ 
-          cumulative_points: (user.cumulative_points || 0) + 5 
-        })
-        .eq("id", user.id);
-
-      if (profileError) {
-        console.error("Error updating profile points:", profileError);
       }
 
       console.log("STATA issue created successfully:", issueData);
