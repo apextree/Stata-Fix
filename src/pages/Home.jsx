@@ -9,7 +9,7 @@ const Home = () => {
   return (
     <div className="home-container">
       <div className="welcome-section">
-        <h1>Welcome to StataFix! 💻</h1>
+        <h1>Welcome to StataFix!</h1>
         {isAuthenticated && user ? (
           <>
             <p className="welcome-text">
@@ -43,7 +43,7 @@ const Home = () => {
           </>
         )}
         <div className="welcome-image">
-          <span className="political-emoji">💻📊🔍📈</span>
+          <span className="political-emoji"></span>
         </div>
       </div>
     </div>
