@@ -12,6 +12,20 @@ dist
 dist-ssr
 *.local
 
+# Local SQL and setup scripts
+*.sql
+
+# Local planning/notes (not needed for hosting)
+ADDITIONAL_DARK_MODE_FIXES.md
+ARCHITECTURE.md
+COMPLETION_REPORT.md
+FIXES_DARK_MODE_AND_POINTS.md
+MIGRATION_GUIDE.md
+QUICK_REFERENCE.md
+TRANSFORMATION_SUMMARY.md
+UPDATE_VOTING_SYSTEM.md
+revampPlan.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
