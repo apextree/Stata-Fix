@@ -94,6 +94,12 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.polipion-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .back-link,
 .edit-link {
   color: var(--text-color);
@@ -110,6 +116,23 @@
 .edit-link:hover {
   background-color: var(--bg-secondary);
   border-color: var(--border-secondary);
+}
+
+.resolve-btn {
+  background-color: #10b981;
+  color: white;
+  border: 1px solid #10b981;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resolve-btn:hover {
+  background-color: #059669;
+  border-color: #059669;
 }
 
 .polipion-details-content {
@@ -291,14 +314,15 @@
 }
 
 .comments-section {
-  border-top: 1px solid var(--border-color);
-  padding-top: 30px;
+  border-top: 2px solid var(--border-color);
+  padding-top: 24px;
+  margin-top: 10px;
 }
 
 .comments-section h3 {
-  font-size: 1.3em;
+  font-size: 1.05rem;
   color: var(--text-color);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   font-weight: 600;
 }
 
@@ -359,10 +383,15 @@
 }
 
 .comment-item {
-  padding: 15px;
+  padding: 16px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  background-color: var(--card-bg);
+  background-color: var(--bg-secondary);
+}
+
+.comment-item.comment-verified {
+  border: 2px solid #10b981;
+  background-color: #f0fdf4;
 }
 
 .comment-header {
@@ -371,24 +400,28 @@
   align-items: center;
   margin-bottom: 10px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .comment-author {
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
 }
 
 .comment-text {
-  color: #333;
+  color: var(--text-color);
   line-height: 1.5;
 }
 
 .no-comments {
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
   font-style: italic;
   padding: 20px;
+}
+
+[data-theme="dark"] .comment-item.comment-verified {
+  background-color: rgba(16, 185, 129, 0.15);
 }
 
 .loading-container,

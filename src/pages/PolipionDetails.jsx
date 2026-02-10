@@ -317,22 +317,32 @@ const PolipionDetails = () => {
           <Link to="/polipions" className="back-link">
             ← Back to All Issues
           </Link>
-          {user && user.id === polipion.user_id && !polipion.is_resolved && (
-            <Link to={`/edit/${polipion.id}`} className="edit-link">
-              Edit Issue
-            </Link>
-          )}
-          {polipion.is_resolved && (
-            <span className="resolved-badge" style={{
-              backgroundColor: '#10b981',
-              color: 'white',
-              padding: '8px 16px',
-              borderRadius: '4px',
-              fontWeight: 'bold'
-            }}>
-              ✓ Resolved
-            </span>
-          )}
+          <div className="polipion-header-actions">
+            {user && user.id === polipion.user_id && !polipion.is_resolved && (
+              <>
+                <Link to={`/edit/${polipion.id}`} className="edit-link">
+                  Edit Issue
+                </Link>
+                <button
+                  className="resolve-btn"
+                  onClick={handleSelfResolve}
+                >
+                  ✓ Mark as Resolved
+                </button>
+              </>
+            )}
+            {polipion.is_resolved && (
+              <span className="resolved-badge" style={{
+                backgroundColor: '#10b981',
+                color: 'white',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                fontWeight: 'bold'
+              }}>
+                ✓ Resolved
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="polipion-details-content">
@@ -454,25 +464,6 @@ const PolipionDetails = () => {
             <div className="comments-section">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3>Solutions & Suggestions ({comments.length})</h3>
-                
-                {/* Self-resolve button for issue author */}
-                {user && user.id === polipion.user_id && !polipion.is_resolved && (
-                  <button
-                    onClick={handleSelfResolve}
-                    style={{
-                      backgroundColor: '#10b981',
-                      color: 'white',
-                      border: 'none',
-                      padding: '8px 16px',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: '500'
-                    }}
-                  >
-                    ✓ Mark as Resolved (Figured it out)
-                  </button>
-                )}
               </div>
 
               {user && !polipion.is_resolved && (
@@ -504,13 +495,10 @@ const PolipionDetails = () => {
               <div className="comments-list">
                 {comments && comments.length > 0 ? (
                   comments.map((comment) => (
-                    <div key={comment.id} className="comment-item" style={{
-                      border: comment.is_verified_fix ? '2px solid #10b981' : '1px solid #e2e8f0',
-                      backgroundColor: comment.is_verified_fix ? '#f0fdf4' : 'white',
-                      padding: '16px',
-                      marginBottom: '12px',
-                      borderRadius: '8px'
-                    }}>
+                    <div
+                      key={comment.id}
+                      className={`comment-item${comment.is_verified_fix ? ' comment-verified' : ''}`}
+                    >
                       <div className="comment-header" style={{
                         display: 'flex',
                         justifyContent: 'space-between',

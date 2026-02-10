@@ -1,86 +1,86 @@
-# Web Development Final Project - *Polipine*
+# StataFix
 
-Submitted by: **Anubhav Dhungana**
+StataFix is a class‑focused platform for sharing, discussing, and solving Stata issues. It combines a discussion forum with points, voting, and verified fixes, backed by Supabase Auth, Postgres, and Storage.
 
-This web app: **Polipine(Politics + Opine) is a social platform where users can share and discover political opinions from around the world. Users can create "polipions" (political opinions) about politicians, vote on posts, leave comments, and engage in political discussions in a structured, user-friendly environment. Users can also sort posts by upvotes or creation time.**
+## What’s In This Repo
 
-Time spent: **16** hours spent in total
+StataFix is a refactor of the Polipine project into a Stata issue‑tracking and discussion app. The frontend is React (Vite), and the backend is Supabase (Auth, Postgres, Storage).
 
-## Required Features
+## Features
 
-The following **required** functionality is completed:
+- Email‑based authentication with Supabase Auth
+- Email verification required
+- Forgot password and reset password flow
+- Public issue feed and public comments
+- User‑owned edit/delete rules enforced by RLS
+- Voting on issues and comments
+- Points system with automatic ledger and profile totals
+- Image uploads to Supabase Storage
 
+## Tech Stack
 
-- [x] **Web app includes a create form that allows the user to create posts**
-  - Form requires users to add a post title
-  - Forms should have the *option* for users to add: 
-    - additional textual content
-    - an image added as an external image URL
-- [x] **Web app includes a home feed displaying previously created posts**
-  - Web app must include home feed displaying previously created posts
-  - By default, each post on the posts feed should show only the post's:
-    - creation time
-    - title 
-    - upvotes count
-  - Clicking on a post should direct the user to a new page for the selected post
-- [x] **Users can view posts in different ways**
-  - Users can sort posts by either:
-    -  creation time
-    -  upvotes count
-  - Users can search for posts by title
-- [x] **Users can interact with each post in different ways**
-  - The app includes a separate post page for each created post when clicked, where any additional information is shown, including:
-    - content
-    - image
-    - comments
-  - Users can leave comments underneath a post on the post page
-  - Each post includes an upvote button on the post page. 
-    - Each click increases the post's upvotes count by one
-    - Users can upvote any post any number of times
+- React + Vite
+- Supabase Auth
+- Supabase Postgres
+- Supabase Storage
 
-- [x] **A post that a user previously created can be edited or deleted from its post pages**
-  - After a user creates a new post, they can go back and edit the post
-  - A previously created post can be deleted from its post page
+## Local Development
 
-The following **optional** features are implemented:
+1. Install dependencies.
+2. Run the dev server.
 
+```bash
+npm install
+npm run dev
+```
 
-- [x] Web app implements pseudo-authentication
-  - Users can only edit and delete posts or delete comments if they are logged in with the same username they used to create the post. Every user must register or log-in with a unique username before using the app. 
+Your local URL will be shown in the terminal, typically `http://localhost:5173`.
 
-The following **additional** features are implemented:
+## App Routes
 
-* [x] A switch to toggle between light and dark mode. 
-* [x] Users can see all posts created by themselves. 
-* [x] Users can sort their own posts by creation time, upvotes count, or number of comments. 
+- `/` Home
+- `/login` Login
+- `/register` Register
+- `/forgot-password` Request reset
+- `/reset-password` Set new password
+- `/polipions` Issue feed (protected)
+- `/polipion/:id` Issue details (protected)
+- `/new` Create issue (protected)
+- `/edit/:id` Edit issue (protected)
+- `/my-polipions` My issues (protected)
+- `/leaderboard` Leaderboard (protected)
 
-## Video Walkthrough
+## Supabase Setup (Short Version)
 
-Here's a walkthrough of implemented user stories:
+1. Run the SQL in `SUPABASE_SETUP.sql` in the Supabase SQL Editor.
+2. Create a Storage bucket named `issue-images`.
+3. In the Supabase Auth settings:
+   - Enable email confirmation.
+   - Set redirect URLs (see next section).
 
-<img src='src/assets/Final Project Demo GIF.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+For the full backend setup, read `SUPABASE_BACKEND_README.md`.
 
+## Redirect URLs Explained
 
-GIF created with ...  
-MacOS Screen Recording Tool.
+Supabase needs to know which URLs it can redirect back to after email verification or password reset.
 
-## Notes
-* Working with Supabase can get pretty confusing.
-* The login system was pretty tricky. I had to use a context API to manage the user state. 
+Use your dev URL from Vite. Example:
 
+- Site URL: `http://localhost:5173`
+- Additional Redirect URLs:
+  - `http://localhost:5173`
+  - `http://localhost:5173/reset-password`
+
+When you deploy, add your production domain and `https://your-domain/reset-password`.
+
+## Project Notes
+
+- All writes are protected by Row Level Security.
+- Points are awarded by database functions, not by client updates.
+- Images are stored in the `issue-images` bucket.
 
 ## License
 
-    Copyright [2025] [Anubhav Dhungana]
+Copyright [2025] [Anubhav Dhungana]
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+Licensed under the Apache License, Version 2.0.
