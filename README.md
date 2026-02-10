@@ -1,83 +1,36 @@
 # StataFix
 
-StataFix is a class‑focused platform for sharing, discussing, and solving Stata issues. It combines a discussion forum with points, voting, and verified fixes, backed by Supabase Auth, Postgres, and Storage.
+StataFix is a class‑focused platform for sharing, discussing, and solving Stata issues. It combines a discussion forum with points, voting, and verified fixes.
 
-## What’s In This Repo
+## Visit The Site
 
-StataFix is a refactor of the Polipine project into a Stata issue‑tracking and discussion app. The frontend is React (Vite), and the backend is Supabase (Auth, Postgres, Storage).
+Netlify link: **(add link here)**
 
-## Features
+## Email Verification (Important)
 
-- Email‑based authentication with Supabase Auth
-- Email verification required
-- Forgot password and reset password flow
-- Public issue feed and public comments
-- User‑owned edit/delete rules enforced by RLS
-- Voting on issues and comments
-- Points system with automatic ledger and profile totals
-- Image uploads to Supabase Storage
+When you sign up, StataFix sends a verification email.  
+If you don’t see it, check your **Spam** or **Promotions** folder (Gmail often places it there).
 
-## Tech Stack
+## What You Can Do
 
-- React + Vite
-- Supabase Auth
-- Supabase Postgres
-- Supabase Storage
-
-## Local Development
-
-1. Install dependencies.
-2. Run the dev server.
-
-```bash
-npm install
-npm run dev
-```
-
-Your local URL will be shown in the terminal, typically `http://localhost:5173`.
-
-## App Routes
-
-- `/` Home
-- `/login` Login
-- `/register` Register
-- `/forgot-password` Request reset
-- `/reset-password` Set new password
-- `/polipions` Issue feed (protected)
-- `/polipion/:id` Issue details (protected)
-- `/new` Create issue (protected)
-- `/edit/:id` Edit issue (protected)
-- `/my-polipions` My issues (protected)
-- `/leaderboard` Leaderboard (protected)
-
-## Supabase Setup (Short Version)
-
-1. Run the SQL in `SUPABASE_SETUP.sql` in the Supabase SQL Editor.
-2. Create a Storage bucket named `issue-images`.
-3. In the Supabase Auth settings:
-   - Enable email confirmation.
-   - Set redirect URLs (see next section).
-
-For the full backend setup, read `SUPABASE_BACKEND_README.md`.
-
-## Redirect URLs Explained
-
-Supabase needs to know which URLs it can redirect back to after email verification or password reset.
-
-Use your dev URL from Vite. Example:
-
-- Site URL: `http://localhost:5173`
-- Additional Redirect URLs:
-  - `http://localhost:5173`
-  - `http://localhost:5173/reset-password`
-
-When you deploy, add your production domain and `https://your-domain/reset-password`.
-
-## Project Notes
-
-- All writes are protected by Row Level Security.
-- Points are awarded by database functions, not by client updates.
-- Images are stored in the `issue-images` bucket.
+- Create a new Stata issue with a clear title and description
+- Add the Stata command you were running
+- Attach a screenshot of the error
+- Tag your issue by error category (syntax, data, type mismatch, etc.)
+- Browse all issues and search by command, title, or description
+- Sort issues by:
+  - Most active (“Hot”)
+  - Newest
+  - Most upvotes
+  - Unsolved first
+- Filter to show only unresolved issues
+- Comment with solutions and suggestions
+- Upvote or downvote issues and comments
+- Mark a helpful comment as the verified fix
+- Mark your own issue as resolved when you figure it out
+- Earn points for posting issues and helping others
+- View the leaderboard and track your points
+- View and manage your own reported issues
 
 ## License
 

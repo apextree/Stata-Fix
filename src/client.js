@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
-const URL = 'https://qlccomahzlrzazerghiw.supabase.co'
-const API_KEY = "sb_publishable_45fNc5v46Cld8mXz21pHxw_5B3KBPq_"
+const URL = import.meta.env.VITE_SUPABASE_URL
+const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!URL || !API_KEY) {
+  throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
+}
 
 export const supabase = createClient(URL, API_KEY)
