@@ -4,7 +4,7 @@ StataFix is a class‑focused platform for sharing, discussing, and solving Stat
 
 ## Visit The Site
 
-Netlify link: **(add link here)**
+Netlify link: **[Stata Fix](https://stata-fix.netlify.app/)**
 
 ## Email Verification (Important)
 
